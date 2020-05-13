@@ -1,0 +1,21 @@
+# Matmake file
+# https://github.com/mls-m5/matmake
+
+config += c++17 Wall
+
+main.sysincludes +=
+   lib/b0RemoteApiBindings/cpp/
+   lib/bluezero/include/b0/bindings
+   lib/b0RemoteApiBindings/cpp/msgpack-c/include/
+
+main.includes +=
+   lib/bluezero-fixes/include/
+   include
+
+main.src =
+   src/*.cpp
+   lib/b0RemoteApiBindings/cpp/b0RemoteApi.cpp
+
+main.libs = -L lib/bluezero -lb0
+
+

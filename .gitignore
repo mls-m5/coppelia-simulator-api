@@ -1,0 +1,7 @@
+
+
+main
+*.d
+*.o
+.coppelia.creator.user
+

@@ -1,0 +1,9 @@
+[submodule "matmake"]
+	path = matmake
+	url = https://github.com/mls-m5/matmake
+[submodule "lib/libzmq"]
+	path = lib/libzmq
+	url = https://github.com/zeromq/libzmq
+[submodule "lib/bluezero"]
+	path = lib/bluezero
+	url = https://github.com/CoppeliaRobotics/bluezero
