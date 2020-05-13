@@ -16,6 +16,8 @@ main.src =
    src/*.cpp
    lib/b0RemoteApiBindings/cpp/b0RemoteApi.cpp
 
-main.libs = -L lib/bluezero/build -lb0
+main.copy = lib/bluezero/build
+
+main.libs = -L lib/bluezero/build -lb0 -Wl,-rpath='${ORIGIN}/lib/bluezero/build'
 
 
