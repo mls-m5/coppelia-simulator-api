@@ -9,7 +9,6 @@ main.sysincludes +=
    lib/b0RemoteApiBindings/cpp/msgpack-c/include/
 
 main.includes +=
-   lib/bluezero-fixes/include/
    include
 
 main.src =
