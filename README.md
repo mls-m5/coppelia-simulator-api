@@ -8,7 +8,7 @@ Installing on linux
 
 ### Install dependencies
 ``` bash
-sudo apt install libzmq3-dev
+sudo apt install libzmq3-dev libboost-all-dev
 ```
 
 ### Pull down all repositories
