@@ -12,7 +12,9 @@ sudo apt install libzmq3-dev libboost-all-dev
 ```
 
 Coppelia Sim dependencies:
-> sudo apt install libavcodec-dev libavformat-dev libswscale-dev
+```
+sudo apt install libavcodec-dev libavformat-dev libswscale-dev
+```
 
 
 ### Pull down all repositories
