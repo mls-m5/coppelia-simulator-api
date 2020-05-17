@@ -7,3 +7,9 @@
 [submodule "lib/bluezero"]
 	path = lib/bluezero
 	url = https://github.com/CoppeliaRobotics/bluezero
+[submodule "lib/matgui"]
+	path = lib/matgui
+	url = https://github.com/mls-m5/matgui
+[submodule "lib/matmath"]
+	path = lib/matmath
+	url = https://github.com/mls-m5/matmath

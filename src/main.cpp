@@ -1,10 +1,11 @@
 #include "b0RemoteApi.h"
-#ifdef _WIN32
-#include <windows.h>
-#else
-#include <unistd.h>
-#endif
+//#ifdef _WIN32
+//#include <windows.h>
+//#else
+//#include <unistd.h>
+//#endif
 
+#include "gui.h"
 #include "hexapod.h"
 
 static float simTime = 0.0f;
@@ -29,32 +30,32 @@ void proxSensor_CB(std::vector<msgpack::object> *msg) {
     printf(".");
 }
 
-std::array<int, numHexapods> getHexapodHandles()
-{
+std::array<int, numHexapods> getHexapodHandles() {
     //! @todo: Get all handles from strings hexapod_[1, numHexapods]
 
     std::array<int, numHexapods> handles = {};
-    handles[0] = b0RemoteApi::readInt(cl->simxGetObjectHandle("hexapod_1", cl->simxServiceCall()), 1);
-    //handles[1] = b0RemoteApi::readInt(cl->simxGetObjectHandle("hexapod_2", cl->simxServiceCall()), 1);
+    handles[0] = b0RemoteApi::readInt(
+        cl->simxGetObjectHandle("hexapod_1", cl->simxServiceCall()), 1);
+    // handles[1] = b0RemoteApi::readInt(cl->simxGetObjectHandle("hexapod_2",
+    // cl->simxServiceCall()), 1);
     return handles;
 }
 
-std::vector<Hexapod> createHexapods(std::array<int, numHexapods> handles)
-{
+std::vector<Hexapod> createHexapods(std::array<int, numHexapods> handles) {
     std::vector<Hexapod> hexapods;
     int hexapodNum = 0;
-    for (int handle : handles)
-    {
+    for (int handle : handles) {
         hexapods.push_back(Hexapod(cl, handle, hexapodNum++));
     }
     return hexapods;
 }
 
 int main(int argc, char *argv[]) {
+    Gui gui(argc, argv);
 
     std::cout << "program started" << std::endl;
-    b0RemoteApi client("b0RemoteClient","b0RemoteApi");
-    cl=&client;
+    b0RemoteApi client("b0RemoteClient", "b0RemoteApi");
+    cl = &client;
 
     // Preparing the scene
     auto hexapods = createHexapods(getHexapodHandles());
@@ -64,23 +65,27 @@ int main(int argc, char *argv[]) {
     // Start the simulation
     b0RemoteApi::print(client.simxStartSimulation(client.simxServiceCall()));
 
-    auto result = client.simxGetObjectOrientation(getHexapodHandles()[0], -1, client.simxServiceCall());
+    auto result = client.simxGetObjectOrientation(
+        getHexapodHandles()[0], -1, client.simxServiceCall());
 
     b0RemoteApi::print(result);
-    //for (auto o : result)
+    // for (auto o : result)
     //{
     //    std::cout << o << std::endl;
     //}
 
     char msg[10] = "testmsg";
-    client.simxSetStringSignal("test", msg, sizeof(msg), client.simxServiceCall());
-    //double floatMsg[2] = {2.0, 1.5};
-    //client.simxSetStringSignal("floats", (char*)floatMsg, sizeof(floatMsg), client.simxServiceCall()));
+    client.simxSetStringSignal(
+        "test", msg, sizeof(msg), client.simxServiceCall());
+    // double floatMsg[2] = {2.0, 1.5};
+    // client.simxSetStringSignal("floats", (char*)floatMsg, sizeof(floatMsg),
+    // client.simxServiceCall()));
     client.simxSetFloatSignal("speed", 0.2, client.simxServiceCall());
 
     client.simxSetFloatSignal("rotation", 1, client.simxServiceCall());
-    
-    sleep(10);
+
+    gui.mainLoop();
+    //    sleep(10);
 
     // Stop simulation
     b0RemoteApi::print(client.simxStopSimulation(client.simxServiceCall()));
