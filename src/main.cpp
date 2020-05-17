@@ -1,19 +1,18 @@
 #include "b0RemoteApi.h"
-//#ifdef _WIN32
-//#include <windows.h>
-//#else
-//#include <unistd.h>
-//#endif
 
 #include "gui.h"
 #include "hexapod.h"
 
-static float simTime = 0.0f;
-static int sensorTrigger = 0;
-static long lastTimeReceived = 0;
-static b0RemoteApi *cl = nullptr;
+namespace {
+
+float simTime = 0.0f;
+int sensorTrigger = 0;
+long lastTimeReceived = 0;
+b0RemoteApi *cl = nullptr;
 
 const int numHexapods = 1;
+
+} // namespace
 
 void simulationStepStarted_CB(std::vector<msgpack::object> *msg) {
     std::map<std::string, msgpack::object> data =
@@ -85,7 +84,6 @@ int main(int argc, char *argv[]) {
     client.simxSetFloatSignal("rotation", 1, client.simxServiceCall());
 
     gui.mainLoop();
-    //    sleep(10);
 
     // Stop simulation
     b0RemoteApi::print(client.simxStopSimulation(client.simxServiceCall()));
