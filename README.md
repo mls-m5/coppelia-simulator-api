@@ -14,6 +14,10 @@ sudo apt install libzmq3-dev libboost-all-dev
 Coppelia Sim dependencies:
 > sudo apt install libavcodec-dev libavformat-dev libswscale-dev
 
+BlueZero dependencies:
+Qt5 (libicui18n.so, libicuuc.so) [Link to Ubuntu Package](https://packages.ubuntu.com/bionic/libicu60)
+~~Install [Using this guide](Install_Qt_5_on_Ubuntu). [Link for Qt 5.14 run file](https://download.qt.io/official_releases/qt/5.14/5.14.2/qt-opensource-linux-x64-5.14.2.run)~~
+
 
 ### Pull down all repositories
 ``` bash
