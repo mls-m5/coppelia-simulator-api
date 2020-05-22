@@ -2,8 +2,11 @@
 
 #pragma once
 
-#include "matgui/matguifwd.h"
+#include "matgui/application.h"
+#include "matgui/paint.h"
+#include "matgui/window.h"
 #include "pose.h"
+#include "position.h"
 
 #include <memory>
 #include <vector>
@@ -17,13 +20,17 @@ public:
     void mainLoop();
 
     void setHexapodPosition(size_t index, Pose pose);
+    void setHexapodTarget(size_t index, Pose target);
 
     void draw();
 
 private:
-    std::unique_ptr<MatGui::Application> _application;
-    std::unique_ptr<MatGui::Window> _window;
-    std::unique_ptr<MatGui::Paint> _linePaint;
+    MatGui::Application _application;
+    MatGui::Window _window;
+    MatGui::Paint _linePaint;
+    MatGui::Paint _targetPaint;
 
-    std::vector<Pose> _hexapodPoses;
+    std::vector<struct HexapodInfo> _hexapodInfos;
+
+    float _scale = 40;
 };

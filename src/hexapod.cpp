@@ -201,6 +201,10 @@ void Hexapod::navigate(float x, float y) {
     _target.setPos(x, y);
 }
 
+Pose Hexapod::getTarget() {
+    return {_targets.x, _targets.y, _targets.heading};
+}
+
 void Hexapod::stop() {
     _cl->simxSetFloatSignal("stepAmplitude", 0, _cl->simxServiceCall());
     _isStationary = false;

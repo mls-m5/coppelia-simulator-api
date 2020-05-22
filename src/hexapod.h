@@ -1,5 +1,6 @@
 
 #include "b0RemoteApi.h"
+#include "pose.h"
 
 class Target {
 public:
@@ -48,6 +49,8 @@ public:
     void walk(float velocity, float curvature);
 
     void navigate(float x, float y);
+
+    Pose getTarget();
 
     void setMode(Mode);
 

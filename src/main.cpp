@@ -120,6 +120,7 @@ int main(int argc, char *argv[]) {
                     someNotDone = true;
                 }
                 gui.setHexapodPosition(i, hexapod->getPose());
+                gui.setHexapodTarget(i, hexapod->getTarget());
             }
             jobLeft = !someNotDone;
         }
