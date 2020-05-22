@@ -14,4 +14,4 @@ clean:
 	matmake/matmake clean
 
 matmake/matmake:
-	matmake -C
+	make -C matmake

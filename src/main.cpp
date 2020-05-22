@@ -1,22 +1,21 @@
 #include "b0RemoteApi.h"
-#ifdef _WIN32
-#include <windows.h>
-#else
-#include <unistd.h>
-#endif
 
+#include "gui.h"
 #include "hexapod.h"
-
 #include <unistd.h>
 #include <csignal>
 #include <cstdlib>
 
-static float simTime = 0.0f;
-static int sensorTrigger = 0;
-static long lastTimeReceived = 0;
-static std::unique_ptr<b0RemoteApi> client;
+namespace {
+
+float simTime = 0.0f;
+int sensorTrigger = 0;
+long lastTimeReceived = 0;
+std::unique_ptr<b0RemoteApi> client;
 
 const int numHexapods = 1;
+
+} // namespace
 
 void simulationStepStarted_CB(std::vector<msgpack::object> *msg) {
     std::map<std::string, msgpack::object> data =
@@ -46,6 +45,7 @@ std::vector<Hexapod*> createHexapods(int numHexapods)
 
 
 int main(int argc, char *argv[]) {
+    Gui gui(argc, argv);
 
     auto stopSim = [] ()
     {
@@ -61,7 +61,6 @@ int main(int argc, char *argv[]) {
     //std::signal(SIGTERM, stopSim);
     //std::signal(SIGTSTP, stopSim);
 
-
     std::cout << "program started" << std::endl;
     client = std::make_unique<b0RemoteApi>("b0RemoteClient","b0RemoteApi");
 
@@ -75,7 +74,6 @@ int main(int argc, char *argv[]) {
 
     // Start the simulation
     b0RemoteApi::print(client->simxStartSimulation(client->simxServiceCall()));
-
     
     char msg[20] = "testmsg to hexapod";
     client->simxSetStringSignal("test", msg, sizeof(msg), client->simxServiceCall());
@@ -104,7 +102,6 @@ int main(int argc, char *argv[]) {
     {
         hexapod->navigate(0,0);
     }
-    //hexapods[0].navigate(0,0);
 
     // Finish all jobs
     while (bool jobLeft = true)
@@ -120,6 +117,7 @@ int main(int argc, char *argv[]) {
         jobLeft = !someNotDone;
     }
 
+    gui.mainLoop();
 
     return (0);
 }

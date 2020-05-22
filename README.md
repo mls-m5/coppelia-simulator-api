@@ -1,24 +1,26 @@
 Simulator api using Coppeliasim
 =============================
 
-
-
 Installing on linux
 =========================================
 
 ### Install dependencies
-``` bash
-sudo apt install libzmq3-dev libboost-all-dev
-```
-
 Coppelia Sim dependencies:
-```
+``` bash
 sudo apt install libavcodec-dev libavformat-dev libswscale-dev
 ```
 
 BlueZero dependencies:
+``` bash
+sudo apt install libzmq3-dev libboost-all-dev
+```
+
 Qt5 (libicui18n.so, libicuuc.so) [Link to Ubuntu Package](https://packages.ubuntu.com/bionic/libicu60)
 ~~Install [Using this guide](Install_Qt_5_on_Ubuntu). [Link for Qt 5.14 run file](https://download.qt.io/official_releases/qt/5.14/5.14.2/qt-opensource-linux-x64-5.14.2.run)~~
+
+``` bash
+sudo apt install libsdl2-dev libsdl2-image-dev
+```
 
 
 ### Pull down all repositories
@@ -26,7 +28,7 @@ Qt5 (libicui18n.so, libicuuc.so) [Link to Ubuntu Package](https://packages.ubunt
 git submodule update --init --recursive
 ```
 
-### Build matmake
+### Build matmake (optional)
 ```
 make -C matmake install
 ```
@@ -43,6 +45,11 @@ make b0
 
 ### Build program
 
+```bash
+make
+```
+
+Or if you have matmake installed
 ``` bash
 matmake
 ```

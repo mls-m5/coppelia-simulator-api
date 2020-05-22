@@ -1,6 +1,7 @@
 
 
 main
+matgui.so
 *.d
 *.o
 .coppelia.creator.user

@@ -3,10 +3,25 @@
 
 config += c++17 Wall
 
+# ====== matgui ===========================
+
+matgui.includes +=
+   lib/matgui/include
+
+matgui.src +=
+   lib/matgui/src/*.cpp
+
+matgui.libs = -lSDL2 -lGL -lSDL2_image
+matgui.out = shared matgui
+
+# ====== main =============================
+
 main.sysincludes +=
    lib/b0RemoteApiBindings/cpp/
    lib/bluezero/include/b0/bindings
    lib/b0RemoteApiBindings/cpp/msgpack-c/include/
+   lib/matmath/include
+   lib/matgui/include
 
 main.includes +=
    include
@@ -17,6 +32,8 @@ main.src =
 
 main.copy = lib/bluezero/build
 
-main.libs = -L lib/bluezero/build -lb0 -Wl,-rpath='${ORIGIN}/lib/bluezero/build'
+main.libs =
+   -L lib/bluezero/build -lb0 -Wl,-rpath='${ORIGIN}/lib/bluezero/build'
 
+main.link += matgui
 
