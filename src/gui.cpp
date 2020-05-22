@@ -64,20 +64,22 @@ void Gui::draw() {
     constexpr auto size = 20.;
 
     for (auto &i : _hexapodInfos) {
+
+        auto &target = i.target;
+        auto [tx, ty] = transformToView(target, _scale);
+
+        _targetPaint.drawRect(tx - 2, ty - 2, 4, 4);
+
         auto &p = i.pose;
         auto [x, y] = transformToView(p, _scale);
 
-        auto &target = i.target;
+        _targetPaint.drawLine(x, y, tx, ty);
 
         _linePaint.drawEllipse(x - size / 2., y - size / 2., 20, 20);
+
         _linePaint.drawLine(x,
                             y,
                             x + cos(p.angle * radconv) * 10.,
                             y + sin(p.angle * radconv) * 10);
-
-        auto [tx, ty] = transformToView(target, _scale);
-
-        _targetPaint.drawRect(tx - 2, ty - 2, 4, 4);
-        _targetPaint.drawLine(x, y, tx, ty);
     }
 }

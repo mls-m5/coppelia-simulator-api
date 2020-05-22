@@ -43,22 +43,22 @@ Hexapod::Hexapod(b0RemoteApi *cl, int hexapodNum)
                .movementStrength = 1})
 , _mode(Mode::None)
 , _target(cl, hexapodNum) {
-    std::cout << addNumToString("hexapod_", _hexapodNum).c_str()
-              << addNumToString("ReferenceFrame_", _hexapodNum).c_str()
+    std::cout << "hexapod_" << _hexapodNum << "ReferenceFrame_" << _hexapodNum
               << std::endl;
     _handle = b0RemoteApi::readInt(
-        cl->simxGetObjectHandle(addNumToString("hexapod_", _hexapodNum).c_str(),
-                                _cl->simxServiceCall()),
+        cl->simxGetObjectHandle(
+            ("hexapod_" + std::to_string(_hexapodNum)).c_str(),
+            _cl->simxServiceCall()),
         1);
 
     _refFrameHandle = b0RemoteApi::readInt(
         _cl->simxGetObjectHandle(
-            addNumToString("ReferenceFrame_", _hexapodNum).c_str(),
+            ("ReferenceFrame_" + std::to_string(_hexapodNum)).c_str(),
             _cl->simxServiceCall()),
         1);
 
     auto pose = getPose();
-    _target.setPos(pose.at(0), pose.at(1));
+    _target.setPos(pose.x, pose.y);
 }
 
 bool Hexapod::run() {
@@ -79,10 +79,10 @@ bool Hexapod::run() {
         //! degrees
         //! @todo Handle [-180, 180]
 
-        auto headingDiff = wrap180(_targets.heading - pose.at(2));
+        auto headingDiff = wrap180(_targets.angle - pose.angle);
         // headingDiff -= 90;
-        std::cout << "heading: " << wrap180(pose.at(2))
-                  << ", target: " << wrap180(_targets.heading)
+        std::cout << "heading: " << wrap180(pose.angle)
+                  << ", target: " << wrap180(_targets.angle)
                   << ", error:" << headingDiff << std::endl;
         // return;
         if (abs(headingDiff) > headingBigThreshold) { // We will correct
@@ -112,10 +112,10 @@ bool Hexapod::run() {
     };
 
     auto simpleNavigate = [&]() -> bool {
-        auto diffX = _targets.x - pose.at(0);
-        auto diffY = _targets.y - pose.at(1);
+        auto diffX = _targets.x - pose.x;
+        auto diffY = _targets.y - pose.y;
         auto distToTarget = std::sqrt(pow(diffX, 2) + pow(diffY, 2));
-        _targets.heading = atan2(diffY, diffX) / M_PI * 180;
+        _targets.angle = atan2(diffY, diffX) / M_PI * 180;
 
         std::cout << "Dist to target: " << distToTarget << std::endl;
         _walkParams.movementDirection = 0;
@@ -160,15 +160,15 @@ void Hexapod::setPose(float x, float y, float w) {
         _handle, refFrameHandle, orientation, _cl->simxServiceCall());
 }
 
-std::array<float, 3> Hexapod::getPose() {
-    std::array<float, 3> pose;
+Pose Hexapod::getPose() {
+    Pose pose;
     {
         auto result = _cl->simxGetObjectPosition(
             _handle, refFrameHandle, _cl->simxServiceCall());
         // b0RemoteApi::print(result);
         auto oArr = result->at(1).as<std::array<float, 3>>();
-        pose.at(0) = oArr.at(0);
-        pose.at(1) = oArr.at(1);
+        pose.x = oArr.at(0);
+        pose.y = oArr.at(1);
     }
 
     // Reference frame on the hexapod to measure
@@ -179,13 +179,13 @@ std::array<float, 3> Hexapod::getPose() {
             _refFrameHandle, refFrameHandle, _cl->simxServiceCall());
         auto oArr = result->at(1).as<std::array<float, 3>>();
         // std::cout << "ref heading: " << oArr.at(2)/M_PI*180 << std::endl;
-        pose.at(2) = oArr.at(2) / M_PI * 180;
+        pose.angle = oArr.at(2) / M_PI * 180;
     }
     return pose;
 }
 
 void Hexapod::setTargetHeading(float heading) {
-    _targets.heading = heading;
+    _targets.angle = heading;
 }
 
 void Hexapod::walk(float velocity, float curvature) {
@@ -202,7 +202,7 @@ void Hexapod::navigate(float x, float y) {
 }
 
 Pose Hexapod::getTarget() {
-    return {_targets.x, _targets.y, _targets.heading};
+    return _targets;
 }
 
 void Hexapod::stop() {
@@ -216,18 +216,20 @@ void Hexapod::setMode(Mode mode) {
 
 void Hexapod::apply(WalkParams params) {
     // std::cout << "movement dir: " << params.movementDirection << std::endl;
-    _cl->simxSetFloatSignal(addNumToString("stepVelocity", _hexapodNum).c_str(),
-                            params.stepVelocity,
-                            _cl->simxServiceCall());
     _cl->simxSetFloatSignal(
-        addNumToString("movementDirection", _hexapodNum).c_str(),
+        ("stepVelocity" + std::to_string(_hexapodNum)).c_str(),
+        params.stepVelocity,
+        _cl->simxServiceCall());
+    _cl->simxSetFloatSignal(
+        ("movementDirection" + std::to_string(_hexapodNum)).c_str(),
         params.movementDirection,
         _cl->simxServiceCall());
-    _cl->simxSetFloatSignal(addNumToString("rotationMode", _hexapodNum).c_str(),
-                            params.rotationMode,
-                            _cl->simxServiceCall());
     _cl->simxSetFloatSignal(
-        addNumToString("movementStrength", _hexapodNum).c_str(),
+        ("rotationMode" + std::to_string(_hexapodNum)).c_str(),
+        params.rotationMode,
+        _cl->simxServiceCall());
+    _cl->simxSetFloatSignal(
+        ("movementStrength" + std::to_string(_hexapodNum)).c_str(),
         params.movementStrength,
         _cl->simxServiceCall());
 }

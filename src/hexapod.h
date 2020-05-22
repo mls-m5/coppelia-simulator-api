@@ -30,7 +30,7 @@ public:
     //! @param heading yaw in degrees
     void setPose(float x, float y, float heading);
 
-    std::array<float, 3> getPose();
+    Pose getPose();
 
     //! @brief This function will run the control loops e.g. to reach target
     //! positions, angles etc
@@ -63,11 +63,7 @@ private:
     int _hexapodNum;
     bool _isStationary;
 
-    struct Targets {
-        float heading;
-        float x;
-        float y;
-    } _targets;
+    Pose _targets;
 
     typedef struct {
         float stepVelocity; // Speed of the robot [0, 1+]
