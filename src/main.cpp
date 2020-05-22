@@ -33,11 +33,12 @@ void proxSensor_CB(std::vector<msgpack::object> *msg) {
     printf(".");
 }
 
-std::vector<Hexapod *> createHexapods(int numHexapods) {
-    std::vector<Hexapod *> hexapods;
+std::vector<std::unique_ptr<Hexapod>> createHexapods(int numHexapods) {
+    std::vector<std::unique_ptr<Hexapod>> hexapods;
     int hexapodNum = 0;
     for (int i = 0; i < numHexapods; i++) {
-        hexapods.push_back(new Hexapod(client.get(), hexapodNum++));
+        hexapods.push_back(
+            std::make_unique<Hexapod>(client.get(), hexapodNum++));
     }
     return hexapods;
 }
@@ -96,7 +97,7 @@ int main(int argc, char *argv[]) {
 
     std::cout << "done" << std::endl;
 
-    for (auto hexapod : hexapods) {
+    for (auto &hexapod : hexapods) {
         hexapod->navigate(0, 0);
     }
 
@@ -106,10 +107,12 @@ int main(int argc, char *argv[]) {
     auto jobThread = std::thread([&]() {
         while (bool jobLeft = true && !abort) {
             bool someNotDone = false;
-            for (auto hexapod : hexapods) {
+            for (size_t i = 0; i < hexapods.size(); ++i) {
+                auto &hexapod = hexapods.at(i);
                 if (!hexapod->run()) {
                     someNotDone = true;
                 }
+                gui.setHexapodPosition(i, hexapod->getPose());
             }
             jobLeft = !someNotDone;
         }
