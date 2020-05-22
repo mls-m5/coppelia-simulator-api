@@ -18,6 +18,10 @@ std::unique_ptr<b0RemoteApi> client;
 
 const int numHexapods = 4;
 
+std::random_device dev;
+
+std::mt19937 randomEngine(dev());
+
 } // namespace
 
 void simulationStepStarted_CB(std::vector<msgpack::object> *msg) {
@@ -99,12 +103,12 @@ int main(int argc, char *argv[]) {
 
     std::cout << "done" << std::endl;
 
-    // Seeding rand
-    srand(static_cast<unsigned>(time(0)));
+    const int floorSize = 5;
+    auto dist =
+        std::uniform_real_distribution<float>(-floorSize / 2, floorSize / 2);
     for (auto &hexapod : hexapods) {
-        const int floorSize = 5;
-        float x = static_cast<float>(rand() % floorSize + 1 - floorSize);
-        float y = static_cast<float>(rand() % floorSize + 1 - floorSize);
+        float x = dist(randomEngine);
+        float y = dist(randomEngine);
         hexapod->navigate(x, y);
     }
 
