@@ -34,6 +34,7 @@ main.copy = lib/bluezero/build
 
 main.libs =
    -L lib/bluezero/build -lb0 -Wl,-rpath='${ORIGIN}/lib/bluezero/build'
+   -pthread
 
 main.link += matgui
 
