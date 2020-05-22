@@ -1,6 +1,20 @@
 
 #include "b0RemoteApi.h"
 
+class Target {
+public:
+    Target(b0RemoteApi *cl, int targetNum);
+
+    void setPos(float x, float y);
+
+    std::array<float, 2> getPos();
+
+private:
+    b0RemoteApi *_cl;
+    std::array<float, 3> _pos;
+    int _handle;
+};
+
 class Hexapod {
 public:
     enum Mode {
@@ -21,8 +35,6 @@ public:
     //! positions, angles etc
     //! @return true when target has been reached
     bool run();
-
-    Pose getTarget();
 
     //! @brief The hexapod will rotate until the desired heading is reached
     //!        If we are stationary rotation will be much faster
@@ -67,6 +79,8 @@ private:
     WalkParams _walkParams;
 
     Mode _mode;
+
+    Target _target;
 
     //! @brief send all configurations to Coppelia
     void apply(WalkParams params);

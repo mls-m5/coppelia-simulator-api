@@ -19,10 +19,10 @@ const std::string addNumToString(const char *c, int i) {
 }
 
 float wrap180(float angle) {
-    if (angle > 180) {
+    while (angle > 180) {
         angle -= 360;
     }
-    else if (angle < -180) {
+    while (angle < -180) {
         angle += 360;
     }
     return angle;
@@ -41,7 +41,8 @@ Hexapod::Hexapod(b0RemoteApi *cl, int hexapodNum)
                .movementDirection = 0,
                .rotationMode = 0,
                .movementStrength = 1})
-, _mode(Mode::None) {
+, _mode(Mode::None)
+, _target(cl, hexapodNum) {
     std::cout << addNumToString("hexapod_", _hexapodNum).c_str()
               << addNumToString("ReferenceFrame_", _hexapodNum).c_str()
               << std::endl;
@@ -55,11 +56,9 @@ Hexapod::Hexapod(b0RemoteApi *cl, int hexapodNum)
             addNumToString("ReferenceFrame_", _hexapodNum).c_str(),
             _cl->simxServiceCall()),
         1);
-    // print orientation from Sim
-    std::vector<msgpack::object> reply;
 
-    b0RemoteApi::print(_cl->simxGetObjectOrientation(
-        _handle, refFrameHandle, _cl->simxServiceCall()));
+    auto pose = getPose();
+    _target.setPos(pose.at(0), pose.at(1));
 }
 
 bool Hexapod::run() {
@@ -72,40 +71,39 @@ bool Hexapod::run() {
     const float rotationGain = 6e-3;
 
     auto adjustHeading = [&]() -> bool {
-        const float headingThreshold = 5;
+        const float headingBigThreshold = 5;
+        const float headingSmallThreshold = 15;
 
         // Adjust heading
         //! @todo check so we turn to "the closest" side. Not to turn 364
         //! degrees
         //! @todo Handle [-180, 180]
-        auto headingDiff =
-            wrap180(wrap180(pose.at(2)) + wrap180(_targets.heading));
+
+        auto headingDiff = wrap180(_targets.heading - pose.at(2));
         // headingDiff -= 90;
-        std::cout << "heading: " << pose.at(2)
-                  << ", target: " << _targets.heading
+        std::cout << "heading: " << wrap180(pose.at(2))
+                  << ", target: " << wrap180(_targets.heading)
                   << ", error:" << headingDiff << std::endl;
         // return;
-        if (abs(headingDiff) > headingThreshold) { // We will correct
+        if (abs(headingDiff) > headingBigThreshold) { // We will correct
             float sign = (headingDiff < 0) ? -1 : 1;
-            if (_isStationary) {
-                _walkParams.rotationMode = sign;
-                _walkParams.stepVelocity = rotationGain * headingDiff;
-            }
-            else {
-                _walkParams.rotationMode =
-                    rotationGain * headingDiff * inMovementTurnRation;
-            }
+            // if (_isStationary)
+            //{
+            _walkParams.rotationMode = sign;
+            _walkParams.stepVelocity = rotationGain * headingDiff;
+        }
+        else if (abs(headingDiff) > headingSmallThreshold) {
+            _walkParams.rotationMode = 0;
+            return true;
+        }
+        else {
+            _walkParams.rotationMode =
+                rotationGain * headingDiff * inMovementTurnRation;
             if (_walkParams.rotationMode > 1.0) {
                 _walkParams.rotationMode = 1.0;
             }
-            return false;
         }
-        else {
-            if (_isStationary) {
-                _walkParams.rotationMode = 0;
-            }
-            return true;
-        }
+        return false;
 
         // Adjust position - by walking
         //! @todo
@@ -123,13 +121,15 @@ bool Hexapod::run() {
         _walkParams.movementDirection = 0;
         _walkParams.stepVelocity = 1.0;
         _isStationary = false;
+
+        if (distToTarget < distThreshold) {
+            _walkParams.rotationMode = 0;
+            _walkParams.stepVelocity = 0;
+            return true;
+        }
         if (!adjustHeading()) { // We still need to adjust heading
             std::cout << "still adjusting heading" << std::endl;
             return false;
-        }
-
-        if (distToTarget < distThreshold) {
-            return true;
         }
         return false;
     };
@@ -170,36 +170,8 @@ std::array<float, 3> Hexapod::getPose() {
         pose.at(0) = oArr.at(0);
         pose.at(1) = oArr.at(1);
     }
-    /*
-    // Pose (Attitude) to find yaw
-    //! @todo We have a problem with yaw. It goes up to pi/2 and down again to
-    -pi/2 like a sine wave. Don't know why
-    {
-        // Euler angles
-        auto result = _cl->simxGetObjectOrientation(_handle, refFrameHandle,
-    _cl->simxServiceCall()); auto oArr = result->at(1).as<std::array<float,
-    3>>();
-        //b0RemoteApi::print(result);
-        pose.at(2) = oArr.at(1)/M_PI*180;
-        //pose.at(2) = oArr.at(2);
-        //std::cout << "heading: " << pose.at(1) << std::endl;
-    }
-    {
-        auto result = _cl->simxGetObjectQuaternion(_handle, refFrameHandle,
-    _cl->simxServiceCall()); auto oArr = result->at(1).as<std::array<float,
-    4>>();
 
-        // Just messing about trying to get yaw from Quaternions
-        auto mag = sqrt(oArr.at(0)*oArr.at(0) + oArr.at(2)*oArr.at(2));
-        auto yaw = 2*acos(oArr.at(0) / mag);
-        //auto yaw = atan2(2.0*(q.y*q.z + q.w*q.x), q.w*q.w - q.x*q.x - q.y*q.y
-    + q.z*q.z);
-        //std::cout << "Q1: " << yaw << std::endl;
-    }
-    */
-
-    // Reference frame (to compare)
-    // I added a reference frame om the hexapod to measure instead
+    // Reference frame on the hexapod to measure
     // This seems to work properly
     {
         // Euler angles
@@ -226,6 +198,7 @@ void Hexapod::navigate(float x, float y) {
     _mode = Mode::SimpleNavigate;
     _targets.x = x;
     _targets.y = y;
+    _target.setPos(x, y);
 }
 
 void Hexapod::stop() {
@@ -253,4 +226,27 @@ void Hexapod::apply(WalkParams params) {
         addNumToString("movementStrength", _hexapodNum).c_str(),
         params.movementStrength,
         _cl->simxServiceCall());
+}
+
+Target::Target(b0RemoteApi *cl, int targetNum)
+: _cl(cl)
+, _pos({0, 0, 0.1})
+, _handle() {
+    _handle = b0RemoteApi::readInt(
+        cl->simxGetObjectHandle(
+            addNumToString("target_", targetNum + 1).c_str(),
+            cl->simxServiceCall()),
+        1);
+}
+
+void Target::setPos(float x, float y) {
+    _pos.at(0) = x;
+    _pos.at(1) = y;
+    float pos[3] = {x, y, _pos.at(2)};
+    _cl->simxSetObjectPosition(
+        _handle, refFrameHandle, pos, _cl->simxServiceCall());
+}
+
+std::array<float, 2> Target::getPos() {
+    return std::array<float, 2>({_pos.at(0), _pos.at(1)});
 }

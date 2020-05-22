@@ -4,7 +4,9 @@
 #include "hexapod.h"
 #include <csignal>
 #include <cstdlib>
+#include <random>
 #include <thread>
+#include <time.h>
 #include <unistd.h>
 
 namespace {
@@ -14,7 +16,7 @@ int sensorTrigger = 0;
 long lastTimeReceived = 0;
 std::unique_ptr<b0RemoteApi> client;
 
-const int numHexapods = 1;
+const int numHexapods = 4;
 
 } // namespace
 
@@ -97,8 +99,13 @@ int main(int argc, char *argv[]) {
 
     std::cout << "done" << std::endl;
 
+    // Seeding rand
+    srand(static_cast<unsigned>(time(0)));
     for (auto &hexapod : hexapods) {
-        hexapod->navigate(0, 0);
+        const int floorSize = 5;
+        float x = static_cast<float>(rand() % floorSize + 1 - floorSize);
+        float y = static_cast<float>(rand() % floorSize + 1 - floorSize);
+        hexapod->navigate(x, y);
     }
 
     bool abort = false;
