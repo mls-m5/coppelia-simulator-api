@@ -7,10 +7,14 @@
 
 #include "hexapod.h"
 
+#include <unistd.h>
+#include <csignal>
+#include <cstdlib>
+
 static float simTime = 0.0f;
 static int sensorTrigger = 0;
 static long lastTimeReceived = 0;
-static b0RemoteApi *cl = nullptr;
+static std::unique_ptr<b0RemoteApi> client;
 
 const int numHexapods = 1;
 
@@ -25,65 +29,97 @@ void simulationStepStarted_CB(std::vector<msgpack::object> *msg) {
 
 void proxSensor_CB(std::vector<msgpack::object> *msg) {
     sensorTrigger = b0RemoteApi::readInt(msg, 1);
-    lastTimeReceived = cl->simxGetTimeInMs();
+    lastTimeReceived = client->simxGetTimeInMs();
     printf(".");
 }
 
-std::array<int, numHexapods> getHexapodHandles()
+std::vector<Hexapod*> createHexapods(int numHexapods)
 {
-    //! @todo: Get all handles from strings hexapod_[1, numHexapods]
-
-    std::array<int, numHexapods> handles = {};
-    handles[0] = b0RemoteApi::readInt(cl->simxGetObjectHandle("hexapod_1", cl->simxServiceCall()), 1);
-    //handles[1] = b0RemoteApi::readInt(cl->simxGetObjectHandle("hexapod_2", cl->simxServiceCall()), 1);
-    return handles;
-}
-
-std::vector<Hexapod> createHexapods(std::array<int, numHexapods> handles)
-{
-    std::vector<Hexapod> hexapods;
+    std::vector<Hexapod*> hexapods;
     int hexapodNum = 0;
-    for (int handle : handles)
+    for (int i = 0; i < numHexapods; i++)
     {
-        hexapods.push_back(Hexapod(cl, handle, hexapodNum++));
+        hexapods.push_back(new Hexapod(client.get(), hexapodNum++));
     }
     return hexapods;
 }
 
+
 int main(int argc, char *argv[]) {
 
+    auto stopSim = [] ()
+    {
+        // Stop simulation
+        std::cout << "Ended!" << std::endl;
+        b0RemoteApi::print(client->simxStopSimulation(client->simxServiceCall()));
+        //exit(0);
+    };
+
+    std::atexit(stopSim);
+    //std::signal(SIGINT, SIG_DFL);
+    //std::signal(SIGABRT, stopSim);
+    //std::signal(SIGTERM, stopSim);
+    //std::signal(SIGTSTP, stopSim);
+
+
     std::cout << "program started" << std::endl;
-    b0RemoteApi client("b0RemoteClient","b0RemoteApi");
-    cl=&client;
+    client = std::make_unique<b0RemoteApi>("b0RemoteClient","b0RemoteApi");
+
+
+    stopSim(); // Start with stopping the sim, if any active
 
     // Preparing the scene
-    auto hexapods = createHexapods(getHexapodHandles());
+    auto hexapods = createHexapods(numHexapods);
 
-    hexapods[0].setPose(2, 1, 90);
+    hexapods.at(0)->setPose(2, 1, 90);
 
     // Start the simulation
-    b0RemoteApi::print(client.simxStartSimulation(client.simxServiceCall()));
+    b0RemoteApi::print(client->simxStartSimulation(client->simxServiceCall()));
 
-    auto result = client.simxGetObjectOrientation(getHexapodHandles()[0], -1, client.simxServiceCall());
-
-    b0RemoteApi::print(result);
-    //for (auto o : result)
-    //{
-    //    std::cout << o << std::endl;
-    //}
-
-    char msg[10] = "testmsg";
-    client.simxSetStringSignal("test", msg, sizeof(msg), client.simxServiceCall());
-    //double floatMsg[2] = {2.0, 1.5};
-    //client.simxSetStringSignal("floats", (char*)floatMsg, sizeof(floatMsg), client.simxServiceCall()));
-    client.simxSetFloatSignal("speed", 0.2, client.simxServiceCall());
-
-    client.simxSetFloatSignal("rotation", 1, client.simxServiceCall());
     
-    sleep(10);
+    char msg[20] = "testmsg to hexapod";
+    client->simxSetStringSignal("test", msg, sizeof(msg), client->simxServiceCall());
 
-    // Stop simulation
-    b0RemoteApi::print(client.simxStopSimulation(client.simxServiceCall()));
-    std::cout << "Ended!" << std::endl;
+    // Change heading
+    hexapods.at(0)->setTargetHeading(75);
+    /*
+    while(hexapods[0].run())
+    {
+        usleep(100);
+    } 
+    hexapods[0].setTargetHeading(-75);
+    while(hexapods[0].run())
+    {
+        usleep(100);
+    } 
+    
+    hexapods[0].walk(0.2, 0.0);
+    hexapods[1].walk(0.5, 0.3);
+    sleep(5);
+    */
+
+    std::cout << "done" << std::endl;
+
+    for (auto hexapod : hexapods)
+    {
+        hexapod->navigate(0,0);
+    }
+    //hexapods[0].navigate(0,0);
+
+    // Finish all jobs
+    while (bool jobLeft = true)
+    {
+        bool someNotDone = false;
+        for (auto hexapod : hexapods)
+        {
+            if (!hexapod->run())
+            {
+                someNotDone = true;
+            }
+        }
+        jobLeft = !someNotDone;
+    }
+
+
     return (0);
 }
