@@ -68,7 +68,7 @@ bool Hexapod::run() {
 
     bool returnValue = false;
 
-    const float distThreshold = 1;
+    const float distThreshold = 0.2;
     const float inMovementTurnRation = 0.5;
     const float rotationGain = 6e-3;
 
@@ -136,6 +136,24 @@ bool Hexapod::run() {
         return false;
     };
 
+    auto translate = [&]() -> bool {
+        auto diffX = _targets.x - pose.x;
+        auto diffY = _targets.y - pose.y;
+        std::cout << "pose z: " << pose.angle << std::endl;
+        _walkParams.movementDirection = atan2(diffY, diffX) - pose.angle;
+        _targets.angle = 0;
+        _walkParams.stepVelocity = 1.0;
+
+        auto distToTarget = std::sqrt(pow(diffX, 2) + pow(diffY, 2));
+
+        if (distToTarget < distThreshold) {
+            _walkParams.rotationMode = 0;
+            _walkParams.stepVelocity = 0;
+            return true;
+        }
+        return false;
+    };
+
     switch (_mode) {
     case Mode::None:
         break;
@@ -147,6 +165,9 @@ bool Hexapod::run() {
         break;
     case Mode::SimpleNavigate:
         returnValue = simpleNavigate();
+        break;
+    case Mode::Translate:
+        returnValue = translate();
         break;
     }
     apply(_walkParams);
@@ -180,8 +201,8 @@ Pose Hexapod::getPose() const {
         auto result = _cl->simxGetObjectOrientation(
             _refFrameHandle, refFrameHandle, _cl->simxServiceCall());
         auto oArr = result->at(1).as<std::array<float, 3>>();
-        // std::cout << "ref heading: " << oArr.at(2)/M_PI*180 << std::endl;
-        pose.angle = oArr.at(2) / M_PI * 180;
+        // std::cout << "ref heading: " << oArr.at(2) << std::endl;
+        pose.angle = oArr.at(2);
     }
     return pose;
 }
@@ -197,7 +218,15 @@ void Hexapod::walk(float velocity, float curvature) {
 }
 
 void Hexapod::navigate(float x, float y, NavigationMode mode) {
-    _mode = Mode::SimpleNavigate;
+    switch (mode) {
+    case NavigationMode::Rotation:
+        _mode = Mode::SimpleNavigate;
+        break;
+    case NavigationMode::Translation:
+        _mode = Mode::Translate;
+        break;
+    }
+
     _targets.x = x;
     _targets.y = y;
     _target.setPos(x, y);

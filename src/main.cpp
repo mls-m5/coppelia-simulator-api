@@ -68,7 +68,7 @@ int main(int argc, char *argv[]) {
     for (auto &hexapod : hexapods) {
         float x = dist(randomEngine);
         float y = dist(randomEngine);
-        hexapod->navigate(x, y);
+        hexapod->navigate(x, y, IHexapod::NavigationMode::Translation);
     }
 
     bool abort = false;

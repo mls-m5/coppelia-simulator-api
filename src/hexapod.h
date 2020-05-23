@@ -19,12 +19,6 @@ private:
 
 class Hexapod : public IHexapod {
 public:
-    enum Mode {
-        None,
-        AdjustHeading,
-        SimpleNavigate,
-    };
-
     Hexapod(b0RemoteApi *cl, int hexapodNum);
 
     //! @brief This function is for use before starting the simulation
@@ -48,6 +42,13 @@ public:
     Pose getTarget() const override;
 
 private:
+    enum Mode {
+        None,
+        AdjustHeading,
+        SimpleNavigate,
+        Translate,
+    };
+
     //! @brief Walk without any goal
     //! @param velocity Speed of the robot [0, 1+]
     //! @param curvature [0, 1] where 0 will walk straight forward and 1 will
