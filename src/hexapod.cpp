@@ -47,7 +47,7 @@ void constrain(float &value, float minMax) {
 Hexapod::Hexapod(b0RemoteApi *cl, int hexapodNum)
 : _cl(cl)
 , _handle()
-, _refFrameHandle()
+, _addedCoordSysHandle()
 , _hexapodNum(hexapodNum + 1)
 , _targets({})
 , _walkParams({.stepVelocity = 0.9,
@@ -66,7 +66,7 @@ Hexapod::Hexapod(b0RemoteApi *cl, int hexapodNum)
             _cl->simxServiceCall()),
         1);
 
-    _refFrameHandle = b0RemoteApi::readInt(
+    _addedCoordSysHandle = b0RemoteApi::readInt(
         _cl->simxGetObjectHandle(
             ("ReferenceFrame_" + std::to_string(_hexapodNum)).c_str(),
             _cl->simxServiceCall()),
@@ -90,12 +90,11 @@ bool Hexapod::run() {
     auto adjustHeading = [&]() -> bool {
         auto headingDiff = wrapPI(_targets.angle - pose.angle);
 
-        if (fabs(headingDiff) > M_PI) {
-            std::cout << "BIG Heading error! : " << headingDiff << std::endl;
-        }
-
+        //! @todo: Sign is inverted. But why?
+        //! It works this way and not the other
+        auto sign = (headingDiff < 0) ? 1 : -1;
         _walkParams.rotationMode =
-            rotationGain * pow(headingDiff, 2) * inMovementTurnRation;
+            rotationGain * pow(headingDiff, 2) * sign * inMovementTurnRation;
         constrain(_walkParams.rotationMode, 1.0);
 
         if (headingDiff < headingThreshold) {
@@ -125,7 +124,6 @@ bool Hexapod::run() {
     auto translate = [&]() -> bool {
         auto diffX = _targets.x - pose.x;
         auto diffY = _targets.y - pose.y;
-        // std::cout << "pose z: " << pose.angle << std::endl;
         _walkParams.movementDirection = atan2(diffY, diffX) - pose.angle;
         _targets.angle = 0;
         _walkParams.stepVelocity = 1.0;
@@ -174,7 +172,6 @@ Pose Hexapod::getPose() const {
     {
         auto result = _cl->simxGetObjectPosition(
             _handle, refFrameHandle, _cl->simxServiceCall());
-        // b0RemoteApi::print(result);
         auto oArr = result->at(1).as<std::array<float, 3>>();
         pose.x = oArr.at(0);
         pose.y = oArr.at(1);
@@ -185,9 +182,8 @@ Pose Hexapod::getPose() const {
     {
         // Euler angles
         auto result = _cl->simxGetObjectOrientation(
-            _refFrameHandle, refFrameHandle, _cl->simxServiceCall());
+            _addedCoordSysHandle, refFrameHandle, _cl->simxServiceCall());
         auto oArr = result->at(1).as<std::array<float, 3>>();
-        // std::cout << "ref heading: " << oArr.at(2) << std::endl;
         pose.angle = oArr.at(2);
     }
     return pose;
