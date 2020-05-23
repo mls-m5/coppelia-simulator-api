@@ -216,22 +216,40 @@ void Hexapod::setMode(Mode mode) {
 
 void Hexapod::apply(WalkParams params) {
     // std::cout << "movement dir: " << params.movementDirection << std::endl;
-    _cl->simxSetFloatSignal(
-        ("stepVelocity" + std::to_string(_hexapodNum)).c_str(),
-        params.stepVelocity,
-        _cl->simxServiceCall());
-    _cl->simxSetFloatSignal(
-        ("movementDirection" + std::to_string(_hexapodNum)).c_str(),
-        params.movementDirection,
-        _cl->simxServiceCall());
-    _cl->simxSetFloatSignal(
-        ("rotationMode" + std::to_string(_hexapodNum)).c_str(),
-        params.rotationMode,
-        _cl->simxServiceCall());
-    _cl->simxSetFloatSignal(
-        ("movementStrength" + std::to_string(_hexapodNum)).c_str(),
-        params.movementStrength,
-        _cl->simxServiceCall());
+    static float lastStepVelocity = 0;
+    static float lastMovementDirection = 0;
+    static float lastRotationMode = 0;
+    static float lastMovementStrength = 0;
+
+    if (params.stepVelocity != lastStepVelocity) {
+        _cl->simxSetFloatSignal(
+            ("stepVelocity" + std::to_string(_hexapodNum)).c_str(),
+            params.stepVelocity,
+            _cl->simxServiceCall());
+        lastStepVelocity = params.stepVelocity;
+    }
+    if (params.movementDirection != lastMovementDirection) {
+        _cl->simxSetFloatSignal(
+            ("movementDirection" + std::to_string(_hexapodNum)).c_str(),
+            params.movementDirection,
+            _cl->simxServiceCall());
+        lastMovementDirection = params.movementDirection;
+    }
+    if (params.rotationMode != lastRotationMode) {
+        _cl->simxSetFloatSignal(
+            ("rotationMode" + std::to_string(_hexapodNum)).c_str(),
+            params.rotationMode,
+            _cl->simxServiceCall());
+        lastRotationMode = params.rotationMode;
+    }
+    if (params.movementStrength != lastMovementStrength) {
+
+        _cl->simxSetFloatSignal(
+            ("movementStrength" + std::to_string(_hexapodNum)).c_str(),
+            params.movementStrength,
+            _cl->simxServiceCall());
+        lastMovementStrength = params.movementStrength;
+    }
 }
 
 Target::Target(b0RemoteApi *cl, int targetNum)
