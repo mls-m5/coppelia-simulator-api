@@ -63,7 +63,6 @@ private:
     int _handle;
     int _refFrameHandle;
     int _hexapodNum;
-    bool _isStationary;
 
     Pose _targets;
 

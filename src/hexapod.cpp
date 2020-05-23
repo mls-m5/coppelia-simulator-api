@@ -11,6 +11,7 @@ const int refFrameHandle = -1;
 const float defHeight = 8.8e-2;
 const float defAlfa = -M_PI / 2;
 const float defGamma = -M_PI / 2;
+const float degToRad = M_PI / 180;
 
 const std::string addNumToString(const char *c, int i) {
     std::stringstream sstr;
@@ -18,14 +19,27 @@ const std::string addNumToString(const char *c, int i) {
     return sstr.str();
 }
 
-float wrap180(float angle) {
-    while (angle > 180) {
-        angle -= 360;
+float wrapPI(float angle) {
+    while (angle > M_PI) {
+        angle -= 2 * M_PI;
     }
-    while (angle < -180) {
-        angle += 360;
+    while (angle < -M_PI) {
+        angle += 2 * M_PI;
     }
     return angle;
+}
+
+void constrain(float &value, float min, float max) {
+    if (value > max) {
+        value = max;
+    }
+    if (value < min) {
+        value = min;
+    }
+}
+
+void constrain(float &value, float minMax) {
+    constrain(value, -minMax, minMax);
 }
 
 } // namespace
@@ -35,7 +49,6 @@ Hexapod::Hexapod(b0RemoteApi *cl, int hexapodNum)
 , _handle()
 , _refFrameHandle()
 , _hexapodNum(hexapodNum + 1)
-, _isStationary(true)
 , _targets({})
 , _walkParams({.stepVelocity = 0.9,
                .movementDirection = 0,
@@ -69,77 +82,45 @@ bool Hexapod::run() {
     bool returnValue = false;
 
     const float distThreshold = 0.2;
-    const float inMovementTurnRation = 0.5;
-    const float rotationGain = 6e-3;
+    const float headingThreshold = 5 * degToRad;
+    const float inMovementTurnRation = 2.0;
+    const float rotationGain = 35e-2;
 
     auto adjustHeading = [&]() -> bool {
-        const float headingBigThreshold = 5;
-        const float headingSmallThreshold = 15;
+        auto headingDiff = wrapPI(_targets.angle - pose.angle);
 
-        // Adjust heading
-        //! @todo check so we turn to "the closest" side. Not to turn 364
-        //! degrees
-        //! @todo Handle [-180, 180]
+        _walkParams.rotationMode =
+            rotationGain * pow(headingDiff, 2) * inMovementTurnRation;
+        constrain(_walkParams.rotationMode, 1.0);
 
-        auto headingDiff = wrap180(_targets.angle - pose.angle);
-        // headingDiff -= 90;
-        std::cout << "heading: " << wrap180(pose.angle)
-                  << ", target: " << wrap180(_targets.angle)
-                  << ", error:" << headingDiff << std::endl;
-        // return;
-        if (abs(headingDiff) > headingBigThreshold) { // We will correct
-            float sign = (headingDiff < 0) ? -1 : 1;
-            // if (_isStationary)
-            //{
-            _walkParams.rotationMode = sign;
-            _walkParams.stepVelocity = rotationGain * headingDiff;
-        }
-        else if (abs(headingDiff) > headingSmallThreshold) {
-            _walkParams.rotationMode = 0;
+        if (headingDiff < headingThreshold) {
             return true;
         }
-        else {
-            _walkParams.rotationMode =
-                rotationGain * headingDiff * inMovementTurnRation;
-            if (_walkParams.rotationMode > 1.0) {
-                _walkParams.rotationMode = 1.0;
-            }
-        }
         return false;
-
-        // Adjust position - by walking
-        //! @todo
-        // if heading is way too off maybe we should turn first
-        // Maybe we can adjust the speed depending on error in heading
     };
 
     auto simpleNavigate = [&]() -> bool {
         auto diffX = _targets.x - pose.x;
         auto diffY = _targets.y - pose.y;
         auto distToTarget = std::sqrt(pow(diffX, 2) + pow(diffY, 2));
-        _targets.angle = atan2(diffY, diffX) / M_PI * 180;
+        _targets.angle = atan2(diffY, diffX);
 
-        std::cout << "Dist to target: " << distToTarget << std::endl;
-        _walkParams.movementDirection = 0;
+        _walkParams.movementDirection = 0; // We don't translate
         _walkParams.stepVelocity = 1.0;
-        _isStationary = false;
 
         if (distToTarget < distThreshold) {
             _walkParams.rotationMode = 0;
             _walkParams.stepVelocity = 0;
             return true;
         }
-        if (!adjustHeading()) { // We still need to adjust heading
-            std::cout << "still adjusting heading" << std::endl;
-            return false;
-        }
+        adjustHeading();
         return false;
     };
 
     auto translate = [&]() -> bool {
         auto diffX = _targets.x - pose.x;
         auto diffY = _targets.y - pose.y;
-        std::cout << "pose z: " << pose.angle << std::endl;
+        // std::cout << "pose z: " << pose.angle << std::endl;
         _walkParams.movementDirection = atan2(diffY, diffX) - pose.angle;
         _targets.angle = 0;
         _walkParams.stepVelocity = 1.0;
@@ -238,7 +219,6 @@ Pose Hexapod::getTarget() const {
 
 void Hexapod::stop() {
     _cl->simxSetFloatSignal("stepAmplitude", 0, _cl->simxServiceCall());
-    _isStationary = false;
 }
 
 void Hexapod::setMode(Mode mode) {
