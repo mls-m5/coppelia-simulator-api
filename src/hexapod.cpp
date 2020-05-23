@@ -78,6 +78,7 @@ Hexapod::Hexapod(b0RemoteApi *cl, int hexapodNum)
 
 bool Hexapod::run() {
     auto pose = getPose();
+    updateTargetPos();
 
     bool returnValue = false;
 
@@ -88,6 +89,10 @@ bool Hexapod::run() {
 
     auto adjustHeading = [&]() -> bool {
         auto headingDiff = wrapPI(_targets.angle - pose.angle);
+
+        if (fabs(headingDiff) > M_PI) {
+            std::cout << "BIG Heading error! : " << headingDiff << std::endl;
+        }
 
         _walkParams.rotationMode =
             rotationGain * pow(headingDiff, 2) * inMovementTurnRation;
@@ -188,6 +193,12 @@ Pose Hexapod::getPose() const {
     return pose;
 }
 
+void Hexapod::updateTargetPos() {
+    auto targetPos = _target.getPos();
+    _targets.x = targetPos.at(0);
+    _targets.y = targetPos.at(1);
+}
+
 void Hexapod::setTargetHeading(float heading) {
     _targets.angle = heading;
 }
@@ -278,5 +289,10 @@ void Target::setPos(float x, float y) {
 }
 
 std::array<float, 2> Target::getPos() {
+    auto result = _cl->simxGetObjectPosition(
+        _handle, refFrameHandle, _cl->simxServiceCall());
+    auto oArr = result->at(1).as<std::array<float, 3>>();
+    _pos.at(0) = oArr.at(0);
+    _pos.at(1) = oArr.at(1);
     return std::array<float, 2>({_pos.at(0), _pos.at(1)});
 }

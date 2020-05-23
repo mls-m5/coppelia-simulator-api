@@ -59,6 +59,8 @@ private:
 
     void setMode(Mode);
 
+    void updateTargetPos();
+
     b0RemoteApi *_cl;
     int _handle;
     int _refFrameHandle;
