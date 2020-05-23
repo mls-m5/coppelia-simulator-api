@@ -82,6 +82,13 @@ private:
 
     Target _target;
 
+    struct {
+        float stepVelocity;
+        float movementDirection;
+        float rotationMode;
+        float movementStrength;
+    } _lastCoppeliaCalls;
+
     //! @brief send all configurations to Coppelia
     void apply(WalkParams params);
 };

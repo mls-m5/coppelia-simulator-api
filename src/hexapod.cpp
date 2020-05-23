@@ -42,7 +42,8 @@ Hexapod::Hexapod(b0RemoteApi *cl, int hexapodNum)
                .rotationMode = 0,
                .movementStrength = 1})
 , _mode(Mode::None)
-, _target(cl, hexapodNum) {
+, _target(cl, hexapodNum)
+, _lastCoppeliaCalls({}) {
     std::cout << "hexapod_" << _hexapodNum << "ReferenceFrame_" << _hexapodNum
               << std::endl;
     _handle = b0RemoteApi::readInt(
@@ -216,39 +217,34 @@ void Hexapod::setMode(Mode mode) {
 
 void Hexapod::apply(WalkParams params) {
     // std::cout << "movement dir: " << params.movementDirection << std::endl;
-    static float lastStepVelocity = 0;
-    static float lastMovementDirection = 0;
-    static float lastRotationMode = 0;
-    static float lastMovementStrength = 0;
-
-    if (params.stepVelocity != lastStepVelocity) {
+    if (params.stepVelocity != _lastCoppeliaCalls.stepVelocity) {
         _cl->simxSetFloatSignal(
             ("stepVelocity" + std::to_string(_hexapodNum)).c_str(),
             params.stepVelocity,
             _cl->simxServiceCall());
-        lastStepVelocity = params.stepVelocity;
+        _lastCoppeliaCalls.stepVelocity = params.stepVelocity;
     }
-    if (params.movementDirection != lastMovementDirection) {
+    if (params.movementDirection != _lastCoppeliaCalls.movementDirection) {
         _cl->simxSetFloatSignal(
             ("movementDirection" + std::to_string(_hexapodNum)).c_str(),
             params.movementDirection,
             _cl->simxServiceCall());
-        lastMovementDirection = params.movementDirection;
+        _lastCoppeliaCalls.movementDirection = params.movementDirection;
     }
-    if (params.rotationMode != lastRotationMode) {
+    if (params.rotationMode != _lastCoppeliaCalls.rotationMode) {
         _cl->simxSetFloatSignal(
             ("rotationMode" + std::to_string(_hexapodNum)).c_str(),
             params.rotationMode,
             _cl->simxServiceCall());
-        lastRotationMode = params.rotationMode;
+        _lastCoppeliaCalls.rotationMode = params.rotationMode;
     }
-    if (params.movementStrength != lastMovementStrength) {
+    if (params.movementStrength != _lastCoppeliaCalls.movementStrength) {
 
         _cl->simxSetFloatSignal(
             ("movementStrength" + std::to_string(_hexapodNum)).c_str(),
             params.movementStrength,
             _cl->simxServiceCall());
-        lastMovementStrength = params.movementStrength;
+        _lastCoppeliaCalls.movementStrength = params.movementStrength;
     }
 }
 
