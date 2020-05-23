@@ -43,7 +43,7 @@ public:
         _target.angle = heading;
     }
 
-    void navigate(float x, float y) override {
+    void navigate(float x, float y, NavigationMode mode = Rotation) override {
         _target.x = x;
         _target.y = y;
     }

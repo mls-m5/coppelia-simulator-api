@@ -43,7 +43,8 @@ Hexapod::Hexapod(b0RemoteApi *cl, int hexapodNum)
                .movementStrength = 1})
 , _mode(Mode::None)
 , _target(cl, hexapodNum)
-, _lastCoppeliaCalls({}) {
+, _lastCoppeliaCalls({})
+, _NavMode(NavigationMode::Rotation) {
     std::cout << "hexapod_" << _hexapodNum << "ReferenceFrame_" << _hexapodNum
               << std::endl;
     _handle = b0RemoteApi::readInt(
@@ -195,7 +196,7 @@ void Hexapod::walk(float velocity, float curvature) {
     apply(_walkParams);
 }
 
-void Hexapod::navigate(float x, float y) {
+void Hexapod::navigate(float x, float y, NavigationMode mode) {
     _mode = Mode::SimpleNavigate;
     _targets.x = x;
     _targets.y = y;

@@ -20,7 +20,12 @@ public:
     //! @param heading in degrees
     virtual void setTargetHeading(float heading) = 0;
 
-    virtual void navigate(float x, float y) = 0;
+    enum NavigationMode {
+        Rotation,
+        Translation,
+    };
+
+    virtual void navigate(float x, float y, NavigationMode = Rotation) = 0;
 
     virtual Pose getTarget() const = 0;
 };

@@ -43,7 +43,7 @@ public:
     //! @param heading in degrees
     void setTargetHeading(float heading) override;
 
-    void navigate(float x, float y) override;
+    void navigate(float x, float y, NavigationMode mode = Rotation) override;
 
     Pose getTarget() const override;
 
@@ -88,6 +88,8 @@ private:
         float rotationMode;
         float movementStrength;
     } _lastCoppeliaCalls;
+
+    NavigationMode _NavMode;
 
     //! @brief send all configurations to Coppelia
     void apply(WalkParams params);
