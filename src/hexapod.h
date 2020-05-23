@@ -1,5 +1,6 @@
 
 #include "b0RemoteApi.h"
+#include "ihexapod.h"
 #include "pose.h"
 
 class Target {
@@ -16,7 +17,7 @@ private:
     int _handle;
 };
 
-class Hexapod {
+class Hexapod : public IHexapod {
 public:
     enum Mode {
         None,
@@ -28,35 +29,35 @@ public:
 
     //! @brief This function is for use before starting the simulation
     //! @param heading yaw in degrees
-    void setPose(float x, float y, float heading);
+    void setPose(float x, float y, float heading) override;
 
-    Pose getPose();
+    Pose getPose() const override;
 
     //! @brief This function will run the control loops e.g. to reach target
     //! positions, angles etc
     //! @return true when target has been reached
-    bool run();
+    bool run() override;
 
     //! @brief The hexapod will rotate until the desired heading is reached
     //!        If we are stationary rotation will be much faster
     //! @param heading in degrees
-    void setTargetHeading(float heading);
+    void setTargetHeading(float heading) override;
 
+    void navigate(float x, float y) override;
+
+    Pose getTarget() const override;
+
+private:
     //! @brief Walk without any goal
     //! @param velocity Speed of the robot [0, 1+]
     //! @param curvature [0, 1] where 0 will walk straight forward and 1 will
     //! rotate on the spot
     void walk(float velocity, float curvature);
 
-    void navigate(float x, float y);
-
-    Pose getTarget();
+    void stop();
 
     void setMode(Mode);
 
-    void stop();
-
-private:
     b0RemoteApi *_cl;
     int _handle;
     int _refFrameHandle;

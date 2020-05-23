@@ -160,7 +160,7 @@ void Hexapod::setPose(float x, float y, float w) {
         _handle, refFrameHandle, orientation, _cl->simxServiceCall());
 }
 
-Pose Hexapod::getPose() {
+Pose Hexapod::getPose() const {
     Pose pose;
     {
         auto result = _cl->simxGetObjectPosition(
@@ -201,7 +201,7 @@ void Hexapod::navigate(float x, float y) {
     _target.setPos(x, y);
 }
 
-Pose Hexapod::getTarget() {
+Pose Hexapod::getTarget() const {
     return _targets;
 }
 
