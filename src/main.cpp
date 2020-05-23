@@ -1,10 +1,12 @@
 #include "b0RemoteApi.h"
 
+#include "calculateprojections.h"
 #include "coppeliasim.h"
 #include "fakesim.h"
 #include "gui.h"
 #include "hexapod.h"
 #include "loadpaths.h"
+#include "organizer.h"
 #include "paths.h"
 #include <csignal>
 #include <random>
@@ -52,9 +54,19 @@ int main(int argc, char *argv[]) {
     client->stop();
 
     // Preparing the scene
+
     auto hexapods = client->createHexapods(numHexapods);
 
     hexapods.at(0)->setPose(2, 1, 90);
+
+    std::vector<IHexapod *> rawHexapods(numHexapods);
+    std::transform(hexapods.begin(),
+                   hexapods.end(),
+                   rawHexapods.begin(),
+                   [](std::unique_ptr<IHexapod> &p) { return p.get(); });
+
+    auto paths = loadPaths("data/paths.txt");
+    Organizer organizer(std::move(rawHexapods), paths);
 
     // Change heading
     hexapods.at(0)->setTargetHeading(75);
@@ -84,14 +96,22 @@ int main(int argc, char *argv[]) {
                 }
 
                 gui.setHexapodInformation(
-                    i, {hexapod->getPose(), hexapod->getTarget()});
+                    i,
+                    {
+                        hexapod->getPose(),
+                        hexapod->getTarget(),
+                        calculateProjections(organizer.getProjection(i),
+                                             0,
+                                             hexapod->getPose(),
+                                             10,
+                                             .3),
+                    });
             }
             jobLeft = !someNotDone;
             this_thread::sleep_for(.1s);
         }
     });
 
-    auto paths = loadPaths("data/paths.txt");
     gui.setPaths(paths);
 
     gui.mainLoop();

@@ -6,4 +6,4 @@
 #include <vector>
 
 using Path = std::vector<Position>;
-using Paths = std::map<std::string, Path>;
+using Paths = std::vector<Path>;

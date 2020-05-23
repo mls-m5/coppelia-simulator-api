@@ -61,9 +61,9 @@ private:
 
     void updateTargetPos();
 
-    b0RemoteApi *_cl;
+    b0RemoteApi *_cl; // Non owning pointer to api
     int _handle;
-    int _refFrameHandle;
+    int _addedCoordSysHandle;
     int _hexapodNum;
 
     Pose _targets;

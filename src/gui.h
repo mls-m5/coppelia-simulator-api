@@ -17,6 +17,7 @@ public:
     struct HexapodInfo {
         Pose pose;
         Pose target;
+        Path projection;
     };
 
     Gui(int argc, char **argv);
@@ -31,10 +32,13 @@ public:
     void draw();
 
 private:
+    void drawProjections(const Path &projections);
+
     MatGui::Application _application;
     MatGui::Window _window;
     MatGui::Paint _linePaint;
     MatGui::Paint _targetPaint;
+    MatGui::Paint _projectionPaint;
 
     std::vector<struct HexapodInfo> _hexapodInfos;
     Paths _paths;

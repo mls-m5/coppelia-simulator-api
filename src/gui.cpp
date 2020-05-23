@@ -12,7 +12,7 @@ using namespace std;
 using namespace MatGui;
 
 namespace {
-std::tuple<float, float> transformToView(Position &p, float scale) {
+Position transformToView(Position &p, float scale) {
     return {p.x * scale + 100, p.y * scale + 300};
 }
 
@@ -24,6 +24,7 @@ Gui::Gui(int argc, char **argv)
 , _linePaint() {
     _linePaint.line.color(1, 1, 1);
     _targetPaint.line.color(0, 0, 1);
+    _projectionPaint.line.color(0, .5, 0);
     _window.frameUpdate.connect([this]() { draw(); });
 
     _window.scroll.connect([this](View::ScrollArgument arg) {
@@ -53,36 +54,47 @@ void Gui::setPaths(Paths paths) {
 }
 
 void Gui::draw() {
-    constexpr auto radconv = MatGui::pi / 180.;
     constexpr auto size = 20.;
 
     for (auto &i : _hexapodInfos) {
 
         auto &target = i.target;
-        auto [tx, ty] = transformToView(target, _scale);
+        auto transformedT = transformToView(target, _scale);
 
-        _targetPaint.drawRect(tx - 2, ty - 2, 4, 4);
+        _targetPaint.drawRect(transformedT.x - 2, transformedT.y - 2, 4, 4);
 
         auto &p = i.pose;
-        auto [x, y] = transformToView(p, _scale);
+        auto transformedP = transformToView(p, _scale);
 
-        _targetPaint.drawLine(x, y, tx, ty);
+        _targetPaint.drawLine(
+            transformedP.x, transformedP.y, transformedT.x, transformedT.y);
 
-        _linePaint.drawEllipse(x - size / 2., y - size / 2., 20, 20);
+        _linePaint.drawEllipse(
+            transformedP.x - size / 2., transformedP.y - size / 2., 20, 20);
 
-        _linePaint.drawLine(x,
-                            y,
-                            x + cos(p.angle * radconv) * 10.,
-                            y + sin(p.angle * radconv) * 10);
+        _linePaint.drawLine(transformedP.x,
+                            transformedP.y,
+                            transformedP.x + cos(p.angle) * 10.,
+                            transformedP.y + sin(p.angle) * 10);
+
+        drawProjections(i.projection);
     }
 
     for (auto &p : _paths) {
-        for (size_t i = 1; i < p.second.size(); ++i) {
+        for (size_t i = 1; i < p.size(); ++i) {
 
-            auto [x1, y1] = transformToView(p.second.at(i - 1), _scale);
-            auto [x2, y2] = transformToView(p.second.at(i), _scale);
+            auto p1 = transformToView(p.at(i - 1), _scale);
+            auto p2 = transformToView(p.at(i), _scale);
 
-            _targetPaint.drawLine(x1, y1, x2, y2);
+            _targetPaint.drawLine(p1.x, p1.y, p2.x, p2.y);
         }
+    }
+}
+
+void Gui::drawProjections(const Path &projections) {
+    const float size = 30;
+    for (auto p : projections) {
+        auto [x, y, z] = transformToView(p, _scale);
+        _projectionPaint.drawEllipse(x - size / 2, y - size / 2, size, size);
     }
 }

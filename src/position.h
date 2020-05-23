@@ -3,6 +3,4 @@
 
 #include "matmath/vec.h"
 
-struct Position : Vecf {
-    using Vecf::Vecf;
-};
+using Position = Vecf;

@@ -11,36 +11,43 @@ Paths loadPaths(string filename) {
 
     Paths ret;
 
-    vector<Position> current;
-    string currentName;
+    vector<Position> currentPath;
+    //    string currentName;
+    size_t currentIndex;
 
     if (!file.is_open()) {
         cout << "could not load paths " << filename << endl;
     }
+
+    auto setPath = [&](size_t index, Path path) {
+        if (index >= ret.size()) {
+            ret.resize(index + 1);
+        }
+        ret.at(index) = std::move(path);
+    };
 
     for (string line; getline(file, line);) {
         if (line.empty()) {
             continue;
         }
         if (line.front() == '#') {
-            ret[currentName] = current;
-            if (!current.empty()) {
-                ret[currentName] = current;
+            if (!currentPath.empty()) {
+                setPath(currentIndex, std::move(currentPath));
             }
-            current.clear();
+            currentPath.clear();
 
-            currentName = line.substr(1);
+            currentIndex = stoul(line.substr(1)) - 1;
         }
         else {
             istringstream ss(line);
             Position pos;
             ss >> pos.x >> pos.y;
-            current.push_back(pos);
+            currentPath.push_back(pos);
         }
     }
 
-    if (!current.empty()) {
-        ret[currentName] = current;
+    if (!currentPath.empty()) {
+        setPath(currentIndex, std::move(currentPath));
     }
 
     return ret;

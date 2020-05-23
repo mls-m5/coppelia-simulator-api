@@ -25,8 +25,7 @@ public:
 
         _pose.angle =
             -((Vecf(_target.x, _target.y) - Vecf(_pose.x, _pose.y)).angle() *
-                  180 / pi -
-              90);
+              -pi / 2);
 
         auto distance = _target - _pose;
         auto d = distance;
