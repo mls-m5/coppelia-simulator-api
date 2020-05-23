@@ -1,6 +1,7 @@
 
 #include "fakehex.h"
-
+#include "matmath/pi.h"
+#include "matmath/vec.h"
 #include "pose.h"
 
 class FakeHex : public IHexapod {
@@ -20,6 +21,21 @@ public:
     }
 
     bool run() override {
+        constexpr float speed = .1;
+
+        _pose.angle =
+            -((Vecf(_target.x, _target.y) - Vecf(_pose.x, _pose.y)).angle() *
+                  180 / pi -
+              90);
+
+        auto distance = _target - _pose;
+        auto d = distance;
+        d.normalize();
+
+        if (distance.abs2() > .1) {
+            std::tie(_pose.x, _pose.y) = _pose + d * speed;
+        }
+
         return false;
     }
 

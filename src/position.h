@@ -1,7 +1,8 @@
 
 #pragma once
 
-struct Position {
-    float x = 0;
-    float y = 0;
+#include "matmath/vec.h"
+
+struct Position : Vecf {
+    using Vecf::Vecf;
 };

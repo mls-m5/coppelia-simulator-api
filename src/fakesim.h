@@ -1,4 +1,6 @@
 
 #pragma once
 
-class FakeSim {};
+#include "isimclient.h"
+
+std::unique_ptr<ISimClient> createFakeClient();

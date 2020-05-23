@@ -1,6 +1,7 @@
 #include "b0RemoteApi.h"
 
 #include "coppeliasim.h"
+#include "fakesim.h"
 #include "gui.h"
 #include "hexapod.h"
 #include "loadpaths.h"
@@ -20,10 +21,33 @@ std::mt19937 randomEngine(dev());
 } // namespace
 
 int main(int argc, char *argv[]) {
-    Gui gui(argc, argv);
-    std::cout << "program started" << std::endl;
+    using namespace std;
+    using namespace chrono_literals;
 
-    auto client = createCoppeliaClient();
+    bool fake = false;
+    for (int i = 0; i < argc; ++i) {
+        std::string arg = argv[i];
+        if (arg == "--fake") {
+            fake = true;
+        }
+        else if (arg == "--help") {
+            cout << "--help for help, --fake to run fake simulation" << endl;
+            return 0;
+        }
+    }
+
+    Gui gui(argc, argv);
+
+    cout << "program started" << endl;
+
+    std::unique_ptr<ISimClient> client;
+    if (fake) {
+        client = createFakeClient();
+        cout << "Using fake client" << endl;
+    }
+    else {
+        client = createCoppeliaClient();
+    }
 
     client->stop();
 
@@ -63,6 +87,7 @@ int main(int argc, char *argv[]) {
                     i, {hexapod->getPose(), hexapod->getTarget()});
             }
             jobLeft = !someNotDone;
+            this_thread::sleep_for(.1s);
         }
     });
 
