@@ -11,13 +11,8 @@
 using namespace std;
 using namespace MatGui;
 
-struct HexapodInfo {
-    Pose pose;
-    Pose target;
-};
-
 namespace {
-std::tuple<float, float> transformToView(Pose &p, float scale) {
+std::tuple<float, float> transformToView(Position &p, float scale) {
     return {p.x * scale + 100, p.y * scale + 300};
 }
 
@@ -43,20 +38,18 @@ void Gui::mainLoop() {
     _application.mainLoop();
 }
 
-void Gui::setHexapodPosition(size_t index, Pose pose) {
+void Gui::setHexapodInformation(size_t index, HexapodInfo info) {
     if (index >= _hexapodInfos.size()) {
         _hexapodInfos.resize(index + 1);
     }
 
-    _hexapodInfos.at(index).pose = pose;
+    _hexapodInfos.at(index) = info;
 
     _window.invalidate();
 }
 
-void Gui::setHexapodTarget(size_t index, Pose target) {
-    _hexapodInfos.at(index).target = target;
-
-    _window.invalidate();
+void Gui::setPaths(Paths paths) {
+    _paths = paths;
 }
 
 void Gui::draw() {
@@ -81,5 +74,15 @@ void Gui::draw() {
                             y,
                             x + cos(p.angle * radconv) * 10.,
                             y + sin(p.angle * radconv) * 10);
+    }
+
+    for (auto &p : _paths) {
+        for (size_t i = 1; i < p.second.size(); ++i) {
+
+            auto [x1, y1] = transformToView(p.second.at(i - 1), _scale);
+            auto [x2, y2] = transformToView(p.second.at(i), _scale);
+
+            _targetPaint.drawLine(x1, y1, x2, y2);
+        }
     }
 }

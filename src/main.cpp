@@ -2,12 +2,11 @@
 
 #include "gui.h"
 #include "hexapod.h"
+#include "loadpaths.h"
+#include "paths.h"
 #include <csignal>
-#include <cstdlib>
 #include <random>
 #include <thread>
-#include <time.h>
-#include <unistd.h>
 
 namespace {
 
@@ -85,22 +84,6 @@ int main(int argc, char *argv[]) {
 
     // Change heading
     hexapods.at(0)->setTargetHeading(75);
-    /*
-    while(hexapods[0].run())
-    {
-        usleep(100);
-    }
-    hexapods[0].setTargetHeading(-75);
-    while(hexapods[0].run())
-    {
-        usleep(100);
-    }
-
-    hexapods[0].walk(0.2, 0.0);
-    hexapods[1].walk(0.5, 0.3);
-    sleep(5);
-    */
-
     std::cout << "done" << std::endl;
 
     const int floorSize = 5;
@@ -123,12 +106,16 @@ int main(int argc, char *argv[]) {
                 if (!hexapod->run()) {
                     someNotDone = true;
                 }
-                gui.setHexapodPosition(i, hexapod->getPose());
-                gui.setHexapodTarget(i, hexapod->getTarget());
+
+                gui.setHexapodInformation(
+                    i, {hexapod->getPose(), hexapod->getTarget()});
             }
             jobLeft = !someNotDone;
         }
     });
+
+    auto paths = loadPaths("data/paths.txt");
+    gui.setPaths(paths);
 
     gui.mainLoop();
 
