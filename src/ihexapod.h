@@ -28,4 +28,7 @@ public:
     virtual void navigate(Position, NavigationMode = Rotation) = 0;
 
     virtual Pose getTarget() const = 0;
+
+    //! @return the filtered velocity in m/s
+    virtual float getVelocity() const = 0;
 };

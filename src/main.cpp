@@ -57,8 +57,6 @@ int main(int argc, char *argv[]) {
 
     auto hexapods = client->createHexapods(numHexapods);
 
-    hexapods.at(0)->setPose({2, 1, 90});
-
     std::vector<IHexapod *> rawHexapods(numHexapods);
     std::transform(hexapods.begin(),
                    hexapods.end(),

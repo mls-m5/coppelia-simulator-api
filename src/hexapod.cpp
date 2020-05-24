@@ -57,7 +57,8 @@ Hexapod::Hexapod(b0RemoteApi *cl, int hexapodNum)
 , _mode(Mode::None)
 , _target(cl, hexapodNum)
 , _lastCoppeliaCalls({})
-, _NavMode(NavigationMode::Rotation) {
+, _NavMode(NavigationMode::Rotation)
+, _velocityData({}) {
     std::cout << "hexapod_" << _hexapodNum << "ReferenceFrame_" << _hexapodNum
               << std::endl;
     _handle = b0RemoteApi::readInt(
@@ -78,6 +79,7 @@ Hexapod::Hexapod(b0RemoteApi *cl, int hexapodNum)
 
 bool Hexapod::run() {
     auto pose = getPose();
+    updateVelocity();
     updateTargetPos();
 
     bool returnValue = false;
@@ -186,6 +188,7 @@ Pose Hexapod::getPose() const {
         auto oArr = result->at(1).as<std::array<float, 3>>();
         pose.angle = oArr.at(2);
     }
+
     return pose;
 }
 
@@ -222,6 +225,10 @@ void Hexapod::navigate(Position position, NavigationMode mode) {
 
 Pose Hexapod::getTarget() const {
     return _targets;
+}
+
+float Hexapod::getVelocity() const {
+    return _velocityData.velocity;
 }
 
 void Hexapod::stop() {
@@ -263,6 +270,34 @@ void Hexapod::apply(WalkParams params) {
             _cl->simxServiceCall());
         _lastCoppeliaCalls.movementStrength = params.movementStrength;
     }
+}
+
+void Hexapod::updateVelocity() {
+    Pose pose;
+    { //! @todo: This is done also by getPose. Uncescessary extra call to API
+        auto result = _cl->simxGetObjectPosition(
+            _handle, refFrameHandle, _cl->simxServiceCall());
+        auto oArr = result->at(1).as<std::array<float, 3>>();
+        pose.x = oArr.at(0);
+        pose.y = oArr.at(1);
+    }
+    auto result = _cl->simxGetServerTimeInMs(_cl->simxServiceCall());
+    auto ms = result->at(1).as<long>();
+
+    auto diffX = pose.x - _velocityData.lastX;
+    auto diffY = pose.y - _velocityData.lastY;
+    auto diffT = ms - _velocityData.lastMs;
+
+    auto dist = sqrt(pow(diffX, 2) * pow(diffY, 2));
+    // Conversion to m/s
+    auto vel = dist / static_cast<float>(diffT) * 1000.0;
+
+    const float filterFactor = 0.6;
+    _velocityData.lastMs = ms;
+    _velocityData.lastX = pose.x;
+    _velocityData.lastY = pose.y;
+    _velocityData.velocity =
+        _velocityData.velocity * filterFactor + vel * (1 - filterFactor);
 }
 
 Target::Target(b0RemoteApi *cl, int targetNum)

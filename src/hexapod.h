@@ -42,6 +42,8 @@ public:
 
     Pose getTarget() const override;
 
+    float getVelocity() const override;
+
 private:
     enum Mode {
         None,
@@ -96,4 +98,13 @@ private:
 
     //! @brief send all configurations to Coppelia
     void apply(WalkParams params);
+
+    void updateVelocity();
+
+    struct {
+        float lastX;
+        float lastY;
+        long lastMs; // time in ms
+        float velocity;
+    } _velocityData;
 };

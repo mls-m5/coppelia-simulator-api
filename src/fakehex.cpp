@@ -54,6 +54,10 @@ public:
         return _target;
     }
 
+    float getVelocity() const override {
+        return 0; //! @todo return something useful
+    }
+
 private:
     Pose _pose;
     Pose _target;
