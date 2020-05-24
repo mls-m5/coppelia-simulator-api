@@ -20,6 +20,7 @@ Gui::Gui(int argc, char **argv)
 , _linePaint() {
     _linePaint.line.color(1, 1, 1);
     _targetPaint.line.color(0, 0, 1);
+    _pathPaint.line.color(0, 0, 1, .1);
     _projectionPaint.line.color(0, .5, 0);
     _blockedProjectionPaint.line.color(0, .5, 0, .4);
     _window.frameUpdate.connect([this]() { draw(); });
@@ -74,8 +75,8 @@ void Gui::draw() {
 
         _linePaint.drawLine(transformedP.x,
                             transformedP.y,
-                            transformedP.x + cos(p.angle) * 10.,
-                            transformedP.y - sin(p.angle) * 10);
+                            transformedP.x + cos(p.angle) * size / 2.,
+                            transformedP.y - sin(p.angle) * size / 2.);
     }
 
     for (auto &p : _paths) {
@@ -84,7 +85,7 @@ void Gui::draw() {
             const auto p1 = transformToView(p.at(i - 1));
             const auto p2 = transformToView(p.at(i));
 
-            _targetPaint.drawLine(p1.x, p1.y, p2.x, p2.y);
+            _pathPaint.drawLine(p1.x, p1.y, p2.x, p2.y);
         }
     }
 }

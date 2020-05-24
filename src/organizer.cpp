@@ -35,7 +35,7 @@ void Organizer::run() {
         }
         if (hexapod->isAtTarget()) {
             path.erase(path.begin());
-            hexapod->navigate(path.front(), IHexapod::Rotation);
+            hexapod->navigate(path.front(), IHexapod::Translation);
         }
     }
 
@@ -45,9 +45,10 @@ void Organizer::run() {
         auto &path = data.path;
         auto &hexapod = data.hexapod;
 
-        data.maxProjectionLength = 10;
+        data.maxProjectionLength = 4 * 4;
+
         projection = calculateProjections(
-            path, 0, hexapod->getPose(), data.maxProjectionLength, .3);
+            path, 0, hexapod->getPose(), data.maxProjectionLength, .3 / 4.);
     }
 
     size_t longestProjection = 0;

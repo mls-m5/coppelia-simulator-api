@@ -86,8 +86,8 @@ bool Hexapod::run() {
 
     bool returnValue = false;
 
-    const float headingThreshold = 5 * degToRad;
-    const float inMovementTurnRation = 2.0;
+    const float headingThreshold = 2. * degToRad;
+    const float inMovementTurnRation = 2.0; // 1. * _targetVelocity;
     const float rotationGain = 35e-2;
 
     auto adjustHeading = [&]() -> bool {
@@ -335,5 +335,5 @@ std::array<float, 2> Target::getPos() {
 }
 
 void Hexapod::setVelocity(float value) {
-    _targetVelocity = value;
+    _targetVelocity = value * 4;
 }

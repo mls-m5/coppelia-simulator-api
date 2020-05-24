@@ -42,6 +42,7 @@ private:
     MatGui::Window _window;
     MatGui::Paint _linePaint;
     MatGui::Paint _targetPaint;
+    MatGui::Paint _pathPaint;
     MatGui::Paint _projectionPaint;
     MatGui::Paint _blockedProjectionPaint;
 
