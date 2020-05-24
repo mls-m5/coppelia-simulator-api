@@ -33,4 +33,6 @@ public:
 
     //! @return the filtered velocity in m/s
     virtual float getVelocity() const = 0;
+
+    virtual void setVelocity(float v) = 0;
 };

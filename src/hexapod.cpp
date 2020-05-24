@@ -112,7 +112,7 @@ bool Hexapod::run() {
         _targets.angle = atan2(diffY, diffX);
 
         _walkParams.movementDirection = 0; // We don't translate
-        _walkParams.stepVelocity = 1.0;
+        _walkParams.stepVelocity = _targetVelocity;
 
         if (isAtTarget()) {
             _walkParams.rotationMode = 0;
@@ -128,7 +128,7 @@ bool Hexapod::run() {
         auto diffY = _targets.y - pose.y;
         _walkParams.movementDirection = atan2(diffY, diffX) - pose.angle;
         _targets.angle = 0;
-        _walkParams.stepVelocity = 1.0 * 5;
+        _walkParams.stepVelocity = _targetVelocity;
 
         if (isAtTarget()) {
             _walkParams.rotationMode = 0;
@@ -332,4 +332,8 @@ std::array<float, 2> Target::getPos() {
     _pos.x = oArr.at(0);
     _pos.y = oArr.at(1);
     return std::array<float, 2>({_pos.x, _pos.y});
+}
+
+void Hexapod::setVelocity(float value) {
+    _targetVelocity = value;
 }

@@ -13,7 +13,7 @@
 
 namespace {
 
-const int numHexapods = 4 / 2;
+const int numHexapods = 4;
 
 std::random_device dev;
 

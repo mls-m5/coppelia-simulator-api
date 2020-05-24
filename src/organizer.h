@@ -18,7 +18,8 @@ private:
         Path path;
         Path projection;
         IHexapod *hexapod;
-        size_t freeProjectionLength;
+        size_t freeProjectionLength = 0;
+        size_t maxProjectionLength = 0;
         bool isStillFree = true;
     };
     bool doesCollide(Position current, size_t ignore, size_t maxIndex) const;

@@ -44,7 +44,10 @@ void Organizer::run() {
         auto &projection = data.projection;
         auto &path = data.path;
         auto &hexapod = data.hexapod;
-        projection = calculateProjections(path, 0, hexapod->getPose(), 10, .3);
+
+        data.maxProjectionLength = 10;
+        projection = calculateProjections(
+            path, 0, hexapod->getPose(), data.maxProjectionLength, .3);
     }
 
     size_t longestProjection = 0;
@@ -72,13 +75,20 @@ void Organizer::run() {
             }
         }
     }
+
+    for (size_t i = 0; i < _hexData.size(); ++i) {
+        auto &data = _hexData.at(i);
+        _hexData.at(i).hexapod->setVelocity(
+            static_cast<float>(data.freeProjectionLength) /
+            data.maxProjectionLength);
+    }
 }
 
 bool Organizer::doesCollide(Position current,
                             size_t ignore,
                             size_t maxIndex) const {
 
-    const auto r = HexapodRadius * 2;
+    const auto r = HexapodRadius * 2; // Fulfix
     for (size_t i = 0; i < _hexData.size(); ++i) {
         if (ignore == i) {
             continue;

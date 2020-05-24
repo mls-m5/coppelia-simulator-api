@@ -35,7 +35,7 @@ public:
         d.normalize();
 
         if (distance.abs2() > .1) {
-            std::tie(_pose.x, _pose.y) = _pose + d * speed;
+            std::tie(_pose.x, _pose.y) = _pose + d * speed * _targetVelocity;
         }
 
         return false;
@@ -62,9 +62,14 @@ public:
         return (_pose - _target).abs2() < .2;
     };
 
+    void setVelocity(float value) override {
+        _targetVelocity = value;
+    }
+
 private:
     Pose _pose;
     Pose _target;
+    float _targetVelocity = 1;
 };
 
 std::unique_ptr<IHexapod> createFakehex(Pose pose) {

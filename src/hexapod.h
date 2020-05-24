@@ -42,9 +42,11 @@ public:
 
     Pose getTarget() const override;
 
-    bool isAtTarget() const;
+    bool isAtTarget() const override;
 
     float getVelocity() const override;
+
+    void setVelocity(float value) override;
 
 private:
     enum Mode {
@@ -109,4 +111,6 @@ private:
         long lastMs; // time in ms
         float velocity;
     } _velocityData;
+
+    float _targetVelocity = 1;
 };
