@@ -42,7 +42,7 @@ public:
 
     Pose getTarget() const override;
 
-    bool atTarget() const;
+    bool isAtTarget() const;
 
     float getVelocity() const override;
 

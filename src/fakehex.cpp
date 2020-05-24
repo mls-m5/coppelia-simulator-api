@@ -58,8 +58,8 @@ public:
         return 0; //! @todo return something useful
     }
 
-    bool atTarget() const override {
-        return false;
+    bool isAtTarget() const override {
+        return (_pose - _target).abs2() < .2;
     };
 
 private:

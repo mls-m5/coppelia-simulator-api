@@ -40,14 +40,6 @@ Organizer::Organizer(std::vector<IHexapod *> hexapods, Paths paths)
             "paths and hexapod vectors does not have the same size");
     }
     _projections.resize(_paths.size());
-    for (size_t i = 0; i < _hexapods.size(); ++i) {
-        //        _hexapods.at(i)->navigate(_paths.at(i).front(),
-        //        IHexapod::Translation);
-        if (_hexapods.at(i)->atTarget()) {
-            _paths.at(i).erase(_paths.at(i).begin());
-        }
-        _hexapods.at(i)->navigate(_paths.at(i).front(), IHexapod::Rotation);
-    }
 }
 
 Path Organizer::getProjection(size_t index) {
@@ -55,6 +47,17 @@ Path Organizer::getProjection(size_t index) {
 }
 
 void Organizer::run() {
+    for (size_t i = 0; i < _hexapods.size(); ++i) {
+        auto &path = _paths.at(i);
+        if (path.size() <= 1) {
+            continue;
+        }
+        if (_hexapods.at(i)->isAtTarget()) {
+            path.erase(path.begin());
+            _hexapods.at(i)->navigate(path.front(), IHexapod::Rotation);
+        }
+    }
+
     for (size_t i = 0; i < _hexapods.size(); ++i) {
         _projections.at(i) = calculateProjections(
             _paths.at(i), 0, _hexapods.at(i)->getPose(), 10, .3);
@@ -72,7 +75,6 @@ void Organizer::run() {
                 continue;
             }
             if (doesCollide(_projections, projection.at(p), i, p)) {
-                /// ?
             }
         }
     }

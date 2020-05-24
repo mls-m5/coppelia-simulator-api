@@ -114,7 +114,7 @@ bool Hexapod::run() {
         _walkParams.movementDirection = 0; // We don't translate
         _walkParams.stepVelocity = 1.0;
 
-        if (atTarget()) {
+        if (isAtTarget()) {
             _walkParams.rotationMode = 0;
             _walkParams.stepVelocity = 0;
             return true;
@@ -130,7 +130,7 @@ bool Hexapod::run() {
         _targets.angle = 0;
         _walkParams.stepVelocity = 1.0 * 5;
 
-        if (atTarget()) {
+        if (isAtTarget()) {
             _walkParams.rotationMode = 0;
             _walkParams.stepVelocity = 0;
             return true;
@@ -190,7 +190,7 @@ Pose Hexapod::getPose() const {
     return pose;
 }
 
-bool Hexapod::atTarget() const {
+bool Hexapod::isAtTarget() const {
     auto diffX = _targets.x - _velocityData.lastX;
     auto diffY = _targets.y - _velocityData.lastY;
     auto distToTarget = std::sqrt(pow(diffX, 2) + pow(diffY, 2));

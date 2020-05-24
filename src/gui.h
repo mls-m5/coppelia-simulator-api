@@ -33,6 +33,8 @@ public:
     void draw();
 
 private:
+    Position transformToView(Position &p);
+
     void drawProjections(const Path &projections);
 
     MatGui::Application _application;

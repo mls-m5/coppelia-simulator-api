@@ -29,7 +29,7 @@ public:
 
     virtual Pose getTarget() const = 0;
 
-    virtual bool atTarget() const = 0;
+    virtual bool isAtTarget() const = 0;
 
     //! @return the filtered velocity in m/s
     virtual float getVelocity() const = 0;

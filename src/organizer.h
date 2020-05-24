@@ -13,6 +13,10 @@ public:
     void run();
 
 private:
+    struct HexapodData {
+        Path path;
+        Path projection;
+    };
     std::vector<Path> _paths;
     std::vector<Path> _projections;
     std::vector<IHexapod *> _hexapods;

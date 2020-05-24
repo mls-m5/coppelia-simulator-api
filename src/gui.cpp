@@ -12,12 +12,7 @@
 using namespace std;
 using namespace MatGui;
 
-namespace {
-Position transformToView(Position &p, float scale) {
-    return {p.x * scale + 200, 200.f - p.y * scale};
-}
-
-} // namespace
+namespace {} // namespace
 
 Gui::Gui(int argc, char **argv)
 : _application(argc, argv)
@@ -60,12 +55,12 @@ void Gui::draw() {
     for (auto &i : _hexapodInfos) {
         _linePaint.line.color(i.color.at(0), i.color.at(1), i.color.at(2));
         auto &target = i.target;
-        auto transformedT = transformToView(target, _scale);
+        auto transformedT = transformToView(target);
 
         _targetPaint.drawRect(transformedT.x - 2, transformedT.y - 2, 4, 4);
 
         auto &p = i.pose;
-        auto transformedP = transformToView(p, _scale);
+        auto transformedP = transformToView(p);
 
         _targetPaint.drawLine(
             transformedP.x, transformedP.y, transformedT.x, transformedT.y);
@@ -84,18 +79,22 @@ void Gui::draw() {
     for (auto &p : _paths) {
         for (size_t i = 1; i < p.size(); ++i) {
 
-            const auto p1 = transformToView(p.at(i - 1), _scale);
-            const auto p2 = transformToView(p.at(i), _scale);
+            const auto p1 = transformToView(p.at(i - 1));
+            const auto p2 = transformToView(p.at(i));
 
             _targetPaint.drawLine(p1.x, p1.y, p2.x, p2.y);
         }
     }
 }
 
+Position Gui::transformToView(Position &p) {
+    return {p.x * _scale + 200, 200.f - p.y * _scale};
+}
+
 void Gui::drawProjections(const Path &projections) {
     const float size = HexapodRadius * 2 * _scale;
     for (auto p : projections) {
-        auto [x, y, z] = transformToView(p, _scale);
+        auto [x, y, z] = transformToView(p);
         _projectionPaint.drawEllipse(x - size / 2, y - size / 2, size, size);
     }
 }

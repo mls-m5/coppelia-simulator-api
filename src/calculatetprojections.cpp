@@ -7,6 +7,10 @@ std::vector<Position> calculateProjections(Path path,
                                            size_t numSteps,
                                            float stepLen) {
 
+    if (path.empty()) {
+        return {};
+    }
+
     std::vector<Position> ret;
 
     std::vector<Position> pathPoints;
