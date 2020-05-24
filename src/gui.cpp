@@ -78,7 +78,7 @@ void Gui::draw() {
         _linePaint.drawLine(transformedP.x,
                             transformedP.y,
                             transformedP.x + cos(p.angle) * 10.,
-                            transformedP.y + sin(p.angle) * 10);
+                            transformedP.y - sin(p.angle) * 10);
     }
 
     for (auto &p : _paths) {
