@@ -73,7 +73,7 @@ Hexapod::Hexapod(b0RemoteApi *cl, int hexapodNum)
         1);
 
     auto pose = getPose();
-    _target.setPos(pose.x, pose.y);
+    _target.setPos(pose);
 }
 
 bool Hexapod::run() {
@@ -158,9 +158,9 @@ bool Hexapod::run() {
     return returnValue;
 }
 
-void Hexapod::setPose(float x, float y, float w) {
-    float pos[3] = {x, y, defHeight};
-    float orientation[3] = {defAlfa, w, defGamma};
+void Hexapod::setPose(Pose pose) {
+    float pos[3] = {pose.x, pose.y, defHeight};
+    float orientation[3] = {defAlfa, pose.angle, defGamma};
     _cl->simxSetObjectPosition(
         _handle, refFrameHandle, pos, _cl->simxServiceCall());
     _cl->simxSetObjectOrientation(
@@ -205,7 +205,7 @@ void Hexapod::walk(float velocity, float curvature) {
     apply(_walkParams);
 }
 
-void Hexapod::navigate(float x, float y, NavigationMode mode) {
+void Hexapod::navigate(Position position, NavigationMode mode) {
     switch (mode) {
     case NavigationMode::Rotation:
         _mode = Mode::SimpleNavigate;
@@ -215,9 +215,9 @@ void Hexapod::navigate(float x, float y, NavigationMode mode) {
         break;
     }
 
-    _targets.x = x;
-    _targets.y = y;
-    _target.setPos(x, y);
+    _targets.x = position.x;
+    _targets.y = position.y;
+    _target.setPos(position);
 }
 
 Pose Hexapod::getTarget() const {
@@ -276,10 +276,10 @@ Target::Target(b0RemoteApi *cl, int targetNum)
         1);
 }
 
-void Target::setPos(float x, float y) {
-    _pos.at(0) = x;
-    _pos.at(1) = y;
-    float pos[3] = {x, y, _pos.at(2)};
+void Target::setPos(Position position) {
+    _pos.x = position.x;
+    _pos.y = position.y;
+    float pos[3] = {position.x, position.y, _pos.z};
     _cl->simxSetObjectPosition(
         _handle, refFrameHandle, pos, _cl->simxServiceCall());
 }
@@ -288,7 +288,7 @@ std::array<float, 2> Target::getPos() {
     auto result = _cl->simxGetObjectPosition(
         _handle, refFrameHandle, _cl->simxServiceCall());
     auto oArr = result->at(1).as<std::array<float, 3>>();
-    _pos.at(0) = oArr.at(0);
-    _pos.at(1) = oArr.at(1);
-    return std::array<float, 2>({_pos.at(0), _pos.at(1)});
+    _pos.x = oArr.at(0);
+    _pos.y = oArr.at(1);
+    return std::array<float, 2>({_pos.x, _pos.y});
 }

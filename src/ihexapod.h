@@ -6,7 +6,7 @@ class IHexapod {
 public:
     //! @brief This function is for use before starting the simulation
     //! @param heading yaw in degrees
-    virtual void setPose(float x, float y, float heading) = 0;
+    virtual void setPose(Pose) = 0;
 
     virtual Pose getPose() const = 0;
 
@@ -25,7 +25,7 @@ public:
         Translation,
     };
 
-    virtual void navigate(float x, float y, NavigationMode = Rotation) = 0;
+    virtual void navigate(Position, NavigationMode = Rotation) = 0;
 
     virtual Pose getTarget() const = 0;
 };

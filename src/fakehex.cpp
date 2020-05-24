@@ -4,6 +4,9 @@
 #include "matmath/vec.h"
 #include "pose.h"
 
+#include <iostream>
+using namespace std;
+
 class FakeHex : public IHexapod {
 
 public:
@@ -12,8 +15,8 @@ public:
 
     //! @brief This function is for use before starting the simulation
     //! @param heading yaw in degrees
-    void setPose(float x, float y, float heading) override {
-        _pose = Pose{{x, y}, heading};
+    void setPose(Pose pose) override {
+        _pose = pose;
     }
 
     Pose getPose() const override {
@@ -21,7 +24,7 @@ public:
     }
 
     bool run() override {
-        constexpr float speed = .1;
+        constexpr float speed = .1 / 2;
 
         _pose.angle =
             -((Vecf(_target.x, _target.y) - Vecf(_pose.x, _pose.y)).angle() *
@@ -42,9 +45,9 @@ public:
         _target.angle = heading;
     }
 
-    void navigate(float x, float y, NavigationMode mode = Rotation) override {
-        _target.x = x;
-        _target.y = y;
+    void navigate(Position target, NavigationMode mode = Rotation) override {
+        _target = target;
+        cout << "fake navigating hexapod to " << target << endl;
     }
 
     Pose getTarget() const override {

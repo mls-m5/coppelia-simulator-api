@@ -1,19 +1,20 @@
 
 #include "b0RemoteApi.h"
 #include "ihexapod.h"
+#include "matmath/vec.h"
 #include "pose.h"
 
 class Target {
 public:
     Target(b0RemoteApi *cl, int targetNum);
 
-    void setPos(float x, float y);
+    void setPos(Position);
 
     std::array<float, 2> getPos();
 
 private:
     b0RemoteApi *_cl;
-    std::array<float, 3> _pos;
+    Vecf _pos;
     int _handle;
 };
 
@@ -23,7 +24,7 @@ public:
 
     //! @brief This function is for use before starting the simulation
     //! @param heading yaw in degrees
-    void setPose(float x, float y, float heading) override;
+    void setPose(Pose pose) override;
 
     Pose getPose() const override;
 
@@ -37,7 +38,7 @@ public:
     //! @param heading in degrees
     void setTargetHeading(float heading) override;
 
-    void navigate(float x, float y, NavigationMode mode = Rotation) override;
+    void navigate(Position position, NavigationMode mode = Rotation) override;
 
     Pose getTarget() const override;
 

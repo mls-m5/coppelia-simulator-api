@@ -57,7 +57,7 @@ int main(int argc, char *argv[]) {
 
     auto hexapods = client->createHexapods(numHexapods);
 
-    hexapods.at(0)->setPose(2, 1, 90);
+    hexapods.at(0)->setPose({2, 1, 90});
 
     std::vector<IHexapod *> rawHexapods(numHexapods);
     std::transform(hexapods.begin(),
@@ -66,6 +66,15 @@ int main(int argc, char *argv[]) {
                    [](std::unique_ptr<IHexapod> &p) { return p.get(); });
 
     auto paths = loadPaths("data/paths.txt");
+
+    for (int i = 0; i < numHexapods; ++i) {
+        auto &hex = hexapods.at(i);
+        auto &path = paths.at(i);
+
+        hex->setPose(path.front());
+        path.erase(path.begin(), path.begin() + 1);
+    }
+
     Organizer organizer(std::move(rawHexapods), paths);
 
     // Change heading
@@ -74,14 +83,17 @@ int main(int argc, char *argv[]) {
 
     client->start();
 
-    const int floorSize = 5;
-    auto dist =
-        std::uniform_real_distribution<float>(-floorSize / 2, floorSize / 2);
-    for (auto &hexapod : hexapods) {
-        float x = dist(randomEngine);
-        float y = dist(randomEngine);
-        hexapod->navigate(x, y, IHexapod::NavigationMode::Rotation);
-    }
+    //    const int floorSize = 5;
+    //    auto dist =
+    //        std::uniform_real_distribution<float>(-floorSize / 2, floorSize /
+    //        2);
+    //    for (auto &hexapod : hexapods) {
+    //        Position target = {
+    //            dist(randomEngine),
+    //            dist(randomEngine),
+    //        };
+    //        hexapod->navigate(target, IHexapod::NavigationMode::Rotation);
+    //    }
 
     bool abort = false;
 
