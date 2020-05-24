@@ -21,6 +21,7 @@ Gui::Gui(int argc, char **argv)
     _linePaint.line.color(1, 1, 1);
     _targetPaint.line.color(0, 0, 1);
     _projectionPaint.line.color(0, .5, 0);
+    _blockedProjectionPaint.line.color(0, .5, 0, .4);
     _window.frameUpdate.connect([this]() { draw(); });
 
     _window.scroll.connect([this](View::ScrollArgument arg) {
@@ -52,20 +53,21 @@ void Gui::setPaths(Paths paths) {
 void Gui::draw() {
     const auto size = HexapodRadius * 2 * _scale;
 
-    for (auto &i : _hexapodInfos) {
-        _linePaint.line.color(i.color.at(0), i.color.at(1), i.color.at(2));
-        auto &target = i.target;
+    for (auto &info : _hexapodInfos) {
+        _linePaint.line.color(
+            info.color.at(0), info.color.at(1), info.color.at(2));
+        auto &target = info.target;
         auto transformedT = transformToView(target);
 
         _targetPaint.drawRect(transformedT.x - 2, transformedT.y - 2, 4, 4);
 
-        auto &p = i.pose;
+        auto &p = info.pose;
         auto transformedP = transformToView(p);
 
         _targetPaint.drawLine(
             transformedP.x, transformedP.y, transformedT.x, transformedT.y);
 
-        drawProjections(i.projection);
+        drawProjections(info.projection, info.freeProjectionLength);
 
         _linePaint.drawEllipse(
             transformedP.x - size / 2., transformedP.y - size / 2., size, size);
@@ -87,14 +89,22 @@ void Gui::draw() {
     }
 }
 
-Position Gui::transformToView(Position &p) {
+Position Gui::transformToView(const Position &p) const {
     return {p.x * _scale + 200, 200.f - p.y * _scale};
 }
 
-void Gui::drawProjections(const Path &projections) {
+void Gui::drawProjections(const Path &projections, size_t freeLength) {
     const float size = HexapodRadius * 2 * _scale;
-    for (auto p : projections) {
+    for (size_t i = 0; i < projections.size(); ++i) {
+        const auto &p = projections.at(i);
         auto [x, y, z] = transformToView(p);
-        _projectionPaint.drawEllipse(x - size / 2, y - size / 2, size, size);
+        if (i <= freeLength) {
+            _projectionPaint.drawEllipse(
+                x - size / 2, y - size / 2, size, size);
+        }
+        else {
+            _blockedProjectionPaint.drawEllipse(
+                x - size / 2, y - size / 2, size, size);
+        }
     }
 }

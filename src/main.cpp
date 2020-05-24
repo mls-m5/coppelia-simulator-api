@@ -13,7 +13,7 @@
 
 namespace {
 
-const int numHexapods = 4;
+const int numHexapods = 4 / 2;
 
 std::random_device dev;
 
@@ -111,13 +111,15 @@ int main(int argc, char *argv[]) {
                     someNotDone = true;
                 }
 
-                gui.setHexapodInformation(i,
-                                          {
-                                              hexapod->getPose(),
-                                              hexapod->getTarget(),
-                                              organizer.getProjection(i),
-                                              hexapodColors.at(i),
-                                          });
+                gui.setHexapodInformation(
+                    i,
+                    {
+                        hexapod->getPose(),
+                        hexapod->getTarget(),
+                        organizer.getProjection(i),
+                        hexapodColors.at(i),
+                        organizer.getFreeProjectionLength(i),
+                    });
             }
             jobLeft = !someNotDone;
             this_thread::sleep_for(.1s);

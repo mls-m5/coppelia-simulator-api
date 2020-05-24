@@ -8,6 +8,7 @@ class Organizer {
 public:
     Organizer(std::vector<IHexapod *> hexapods, Paths paths);
     Path getProjection(size_t index);
+    size_t getFreeProjectionLength(size_t index);
 
     //! Update projections and handle hexapods movemenets
     void run();
@@ -18,6 +19,7 @@ private:
         Path projection;
         IHexapod *hexapod;
         size_t freeProjectionLength;
+        bool isStillFree = true;
     };
     bool doesCollide(Position current, size_t ignore, size_t maxIndex) const;
 

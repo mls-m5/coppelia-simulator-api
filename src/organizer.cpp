@@ -7,9 +7,8 @@ namespace {} // namespace
 
 Organizer::Organizer(std::vector<IHexapod *> hexapods, Paths paths)
 : _hexData(hexapods.size()) {
-    if (hexapods.size() != paths.size()) {
-        throw std::runtime_error(
-            "paths and hexapod vectors does not have the same size");
+    if (hexapods.size() > paths.size()) {
+        throw std::runtime_error("not enough paths");
     }
     for (size_t i = 0; i < _hexData.size(); ++i) {
         auto &data = _hexData.at(i);
@@ -20,6 +19,10 @@ Organizer::Organizer(std::vector<IHexapod *> hexapods, Paths paths)
 
 Path Organizer::getProjection(size_t index) {
     return _hexData.at(index).projection;
+}
+
+size_t Organizer::getFreeProjectionLength(size_t index) {
+    return _hexData.at(index).freeProjectionLength;
 }
 
 void Organizer::run() {
@@ -47,16 +50,25 @@ void Organizer::run() {
     size_t longestProjection = 0;
     for (auto &data : _hexData) {
         longestProjection = std::max(longestProjection, data.projection.size());
+        data.isStillFree = true;
+        data.freeProjectionLength = data.projection.size();
     }
 
-    for (size_t p = 0; p < longestProjection; ++p) {
+    for (size_t projectionIndex = 1; projectionIndex < longestProjection;
+         ++projectionIndex) {
         for (size_t i = 0; i < _hexData.size(); ++i) {
             auto &data = _hexData.at(i);
             auto &projection = data.projection;
-            if (projection.size() <= p) {
+            if (projection.size() <= projectionIndex) {
                 continue;
             }
-            if (doesCollide(projection.at(p), i, p)) {
+            if (!data.isStillFree) {
+                continue;
+            }
+            if (doesCollide(
+                    projection.at(projectionIndex), i, projectionIndex)) {
+                data.freeProjectionLength = projectionIndex - 1;
+                data.isStillFree = false;
             }
         }
     }
@@ -66,6 +78,7 @@ bool Organizer::doesCollide(Position current,
                             size_t ignore,
                             size_t maxIndex) const {
 
+    const auto r = HexapodRadius * 2;
     for (size_t i = 0; i < _hexData.size(); ++i) {
         if (ignore == i) {
             continue;
@@ -78,8 +91,10 @@ bool Organizer::doesCollide(Position current,
             if (pi >= maxIndex) {
                 break;
             }
-            if ((projection.at(pi) - current).abs2() <
-                HexapodRadius * HexapodRadius) {
+            if (pi >= data.freeProjectionLength) {
+                break;
+            }
+            if ((projection.at(pi) - current).abs2() < r * r) {
                 return true;
             }
         }

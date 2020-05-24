@@ -19,6 +19,7 @@ public:
         Pose target;
         Path projection;
         std::array<float, 3> color;
+        size_t freeProjectionLength;
     };
 
     Gui(int argc, char **argv);
@@ -33,15 +34,16 @@ public:
     void draw();
 
 private:
-    Position transformToView(Position &p);
+    Position transformToView(const Position &p) const;
 
-    void drawProjections(const Path &projections);
+    void drawProjections(const Path &projections, size_t freeLength);
 
     MatGui::Application _application;
     MatGui::Window _window;
     MatGui::Paint _linePaint;
     MatGui::Paint _targetPaint;
     MatGui::Paint _projectionPaint;
+    MatGui::Paint _blockedProjectionPaint;
 
     std::vector<struct HexapodInfo> _hexapodInfos;
     Paths _paths;
