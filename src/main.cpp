@@ -95,6 +95,12 @@ int main(int argc, char *argv[]) {
 
     bool abort = false;
 
+    typedef std::array<float, 3> ColorArr;
+    std::array<ColorArr, 4> hexapodColors;
+    hexapodColors[0] = {0.56, 0, 0};
+    hexapodColors[1] = {1, 1, 0.23};
+    hexapodColors[2] = {0.5, 0.5, 1};
+    hexapodColors[3] = {1, 0.6, 0.2};
     // Finish all jobs
     auto jobThread = std::thread([&]() {
         while (bool jobLeft = true && !abort) {
@@ -107,15 +113,14 @@ int main(int argc, char *argv[]) {
 
                 gui.setHexapodInformation(
                     i,
-                    {
-                        hexapod->getPose(),
-                        hexapod->getTarget(),
-                        calculateProjections(organizer.getProjection(i),
-                                             0,
-                                             hexapod->getPose(),
-                                             10,
-                                             .3),
-                    });
+                    {hexapod->getPose(),
+                     hexapod->getTarget(),
+                     calculateProjections(organizer.getProjection(i),
+                                          0,
+                                          hexapod->getPose(),
+                                          10,
+                                          .3),
+                     hexapodColors[i]});
             }
             jobLeft = !someNotDone;
             this_thread::sleep_for(.1s);

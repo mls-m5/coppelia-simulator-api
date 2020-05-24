@@ -57,7 +57,7 @@ void Gui::draw() {
     constexpr auto size = 20.;
 
     for (auto &i : _hexapodInfos) {
-
+        _linePaint.line.color(i.color.at(0), i.color.at(1), i.color.at(2));
         auto &target = i.target;
         auto transformedT = transformToView(target, _scale);
 

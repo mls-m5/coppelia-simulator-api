@@ -18,6 +18,7 @@ public:
         Pose pose;
         Pose target;
         Path projection;
+        std::array<float, 3> color;
     };
 
     Gui(int argc, char **argv);
