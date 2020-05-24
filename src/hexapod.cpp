@@ -128,7 +128,7 @@ bool Hexapod::run() {
         auto diffY = _targets.y - pose.y;
         _walkParams.movementDirection = atan2(diffY, diffX) - pose.angle;
         _targets.angle = 0;
-        _walkParams.stepVelocity = 1.0;
+        _walkParams.stepVelocity = 1.0 * 5;
 
         auto distToTarget = std::sqrt(pow(diffX, 2) + pow(diffY, 2));
 

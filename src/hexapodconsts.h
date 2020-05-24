@@ -1,4 +1,3 @@
-#ifndef HEXAPODCONSTS_H
-#define HEXAPODCONSTS_H
+#pragma once
 
-#endif // HEXAPODCONSTS_H
+constexpr float HexapodRadius = .25;

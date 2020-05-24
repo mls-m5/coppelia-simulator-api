@@ -2,6 +2,7 @@
 
 #include "gui.h"
 
+#include "hexapodconsts.h"
 #include "matgui/application.h"
 #include "matgui/constants.h"
 #include "matgui/paint.h"
@@ -13,7 +14,7 @@ using namespace MatGui;
 
 namespace {
 Position transformToView(Position &p, float scale) {
-    return {p.x * scale + 100, p.y * scale + 300};
+    return {p.x * scale + 100, 200.f - p.y * scale};
 }
 
 } // namespace
@@ -54,7 +55,7 @@ void Gui::setPaths(Paths paths) {
 }
 
 void Gui::draw() {
-    constexpr auto size = 20.;
+    const auto size = HexapodRadius * 2 * _scale;
 
     for (auto &i : _hexapodInfos) {
         _linePaint.line.color(i.color.at(0), i.color.at(1), i.color.at(2));
@@ -69,22 +70,22 @@ void Gui::draw() {
         _targetPaint.drawLine(
             transformedP.x, transformedP.y, transformedT.x, transformedT.y);
 
+        drawProjections(i.projection);
+
         _linePaint.drawEllipse(
-            transformedP.x - size / 2., transformedP.y - size / 2., 20, 20);
+            transformedP.x - size / 2., transformedP.y - size / 2., size, size);
 
         _linePaint.drawLine(transformedP.x,
                             transformedP.y,
                             transformedP.x + cos(p.angle) * 10.,
                             transformedP.y + sin(p.angle) * 10);
-
-        drawProjections(i.projection);
     }
 
     for (auto &p : _paths) {
         for (size_t i = 1; i < p.size(); ++i) {
 
-            auto p1 = transformToView(p.at(i - 1), _scale);
-            auto p2 = transformToView(p.at(i), _scale);
+            const auto p1 = transformToView(p.at(i - 1), _scale);
+            const auto p2 = transformToView(p.at(i), _scale);
 
             _targetPaint.drawLine(p1.x, p1.y, p2.x, p2.y);
         }
@@ -92,7 +93,7 @@ void Gui::draw() {
 }
 
 void Gui::drawProjections(const Path &projections) {
-    const float size = 30;
+    const float size = HexapodRadius * 2 * _scale;
     for (auto p : projections) {
         auto [x, y, z] = transformToView(p, _scale);
         _projectionPaint.drawEllipse(x - size / 2, y - size / 2, size, size);
