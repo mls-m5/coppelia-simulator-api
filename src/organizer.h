@@ -16,8 +16,10 @@ private:
     struct HexapodData {
         Path path;
         Path projection;
+        IHexapod *hexapod;
+        size_t freeProjectionLength;
     };
-    std::vector<Path> _paths;
-    std::vector<Path> _projections;
-    std::vector<IHexapod *> _hexapods;
+    bool doesCollide(Position current, size_t ignore, size_t maxIndex) const;
+
+    std::vector<HexapodData> _hexData;
 };
