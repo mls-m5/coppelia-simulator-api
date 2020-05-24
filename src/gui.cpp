@@ -14,7 +14,7 @@ using namespace MatGui;
 
 namespace {
 Position transformToView(Position &p, float scale) {
-    return {p.x * scale + 100, 200.f - p.y * scale};
+    return {p.x * scale + 200, 200.f - p.y * scale};
 }
 
 } // namespace

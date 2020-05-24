@@ -13,6 +13,8 @@ const float defAlfa = -M_PI / 2;
 const float defGamma = -M_PI / 2;
 const float degToRad = M_PI / 180;
 
+const float distThreshold = 0.2;
+
 const std::string addNumToString(const char *c, int i) {
     std::stringstream sstr;
     sstr << c << i;
@@ -84,7 +86,6 @@ bool Hexapod::run() {
 
     bool returnValue = false;
 
-    const float distThreshold = 0.2;
     const float headingThreshold = 5 * degToRad;
     const float inMovementTurnRation = 2.0;
     const float rotationGain = 35e-2;
@@ -108,13 +109,12 @@ bool Hexapod::run() {
     auto simpleNavigate = [&]() -> bool {
         auto diffX = _targets.x - pose.x;
         auto diffY = _targets.y - pose.y;
-        auto distToTarget = std::sqrt(pow(diffX, 2) + pow(diffY, 2));
         _targets.angle = atan2(diffY, diffX);
 
         _walkParams.movementDirection = 0; // We don't translate
         _walkParams.stepVelocity = 1.0;
 
-        if (distToTarget < distThreshold) {
+        if (atTarget()) {
             _walkParams.rotationMode = 0;
             _walkParams.stepVelocity = 0;
             return true;
@@ -130,9 +130,7 @@ bool Hexapod::run() {
         _targets.angle = 0;
         _walkParams.stepVelocity = 1.0 * 5;
 
-        auto distToTarget = std::sqrt(pow(diffX, 2) + pow(diffY, 2));
-
-        if (distToTarget < distThreshold) {
+        if (atTarget()) {
             _walkParams.rotationMode = 0;
             _walkParams.stepVelocity = 0;
             return true;
@@ -190,6 +188,14 @@ Pose Hexapod::getPose() const {
     }
 
     return pose;
+}
+
+bool Hexapod::atTarget() const {
+    auto diffX = _targets.x - _velocityData.lastX;
+    auto diffY = _targets.y - _velocityData.lastY;
+    auto distToTarget = std::sqrt(pow(diffX, 2) + pow(diffY, 2));
+
+    return (distToTarget < distThreshold);
 }
 
 void Hexapod::updateTargetPos() {

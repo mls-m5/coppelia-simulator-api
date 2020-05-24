@@ -58,6 +58,10 @@ public:
         return 0; //! @todo return something useful
     }
 
+    bool atTarget() const override {
+        return false;
+    };
+
 private:
     Pose _pose;
     Pose _target;

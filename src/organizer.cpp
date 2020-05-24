@@ -43,6 +43,9 @@ Organizer::Organizer(std::vector<IHexapod *> hexapods, Paths paths)
     for (size_t i = 0; i < _hexapods.size(); ++i) {
         //        _hexapods.at(i)->navigate(_paths.at(i).front(),
         //        IHexapod::Translation);
+        if (_hexapods.at(i)->atTarget()) {
+            _paths.at(i).erase(_paths.at(i).begin());
+        }
         _hexapods.at(i)->navigate(_paths.at(i).front(), IHexapod::Rotation);
     }
 }
