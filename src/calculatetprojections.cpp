@@ -21,10 +21,6 @@ std::vector<Position> calculateProjections(Path path,
         return {};
     }
 
-    Position currentPosition = pathPoints.front();
-
-    ret.push_back(currentPosition);
-
     float lenLeft = 0;
 
     for (size_t i = 1; i < pathPoints.size(); ++i) {
@@ -37,9 +33,9 @@ std::vector<Position> calculateProjections(Path path,
         lenLeft += len;
 
         while (lenLeft > 0 && ret.size() < numSteps) {
-            lenLeft -= stepLen;
             auto newPosition = p2 - d * lenLeft;
             ret.push_back(newPosition);
+            lenLeft -= stepLen;
         }
 
         if (ret.size() >= numSteps) {

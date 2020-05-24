@@ -1,6 +1,5 @@
 #include "b0RemoteApi.h"
 
-#include "calculateprojections.h"
 #include "coppeliasim.h"
 #include "fakesim.h"
 #include "gui.h"
@@ -104,6 +103,7 @@ int main(int argc, char *argv[]) {
     // Finish all jobs
     auto jobThread = std::thread([&]() {
         while (bool jobLeft = true && !abort) {
+            organizer.run();
             bool someNotDone = false;
             for (size_t i = 0; i < hexapods.size(); ++i) {
                 auto &hexapod = hexapods.at(i);
@@ -111,16 +111,13 @@ int main(int argc, char *argv[]) {
                     someNotDone = true;
                 }
 
-                gui.setHexapodInformation(
-                    i,
-                    {hexapod->getPose(),
-                     hexapod->getTarget(),
-                     calculateProjections(organizer.getProjection(i),
-                                          0,
-                                          hexapod->getPose(),
-                                          10,
-                                          .3),
-                     hexapodColors[i]});
+                gui.setHexapodInformation(i,
+                                          {
+                                              hexapod->getPose(),
+                                              hexapod->getTarget(),
+                                              organizer.getProjection(i),
+                                              hexapodColors.at(i),
+                                          });
             }
             jobLeft = !someNotDone;
             this_thread::sleep_for(.1s);
