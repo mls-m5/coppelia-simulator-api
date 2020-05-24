@@ -1,0 +1,4 @@
+#ifndef HEXAPODCONSTS_H
+#define HEXAPODCONSTS_H
+
+#endif // HEXAPODCONSTS_H
